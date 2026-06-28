@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-// DUMMY/PLACEHOLDER API ENDPOINTS - Adjust these for production deployment (e.g. Vercel, Render)
-const API_BASE_URL = 'http://localhost:5000/api';
-const STATIC_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (
+  window.location.origin.includes('localhost')
+    ? 'http://localhost:5000/api'
+    : 'https://civicos-ai.onrender.com/api'
+);
+
+const STATIC_BASE_URL = import.meta.env.VITE_STATIC_BASE_URL || (
+  window.location.origin.includes('localhost')
+    ? 'http://localhost:5000'
+    : 'https://civicos-ai.onrender.com'
+);
 
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
