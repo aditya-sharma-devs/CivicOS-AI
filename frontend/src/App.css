@@ -879,8 +879,8 @@ textarea.form-control::-webkit-scrollbar{
 
 /* Admin controls styling */
 .admin-actions-area {
-  background-color: rgba(248, 250, 252, 0.7);
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  background-color: rgba(13, 19, 36, 0.7); /* Dark slate backing matching card contents */
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 16px 30px;
   display: flex;
   justify-content: space-between;
@@ -890,9 +890,9 @@ textarea.form-control::-webkit-scrollbar{
 }
 
 .admin-action-label {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--status-rejected);
+  font-size: 11px;
+  font-weight: 850;
+  color: #818cf8; /* Premium Indigo label color */
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
@@ -1259,9 +1259,22 @@ select.select-admin-status {
   font-weight: 700;
   border-radius: 8px;
   height: 40px;
-  background-color: white;
-  border-color: rgba(79, 70, 229, 0.25);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  background-color: rgba(15, 23, 42, 0.85); /* Dark background */
+  color: #f8fafc; /* Light text color */
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+select.select-admin-status:focus {
+  border-color: var(--primary-hover);
+  outline: none;
+}
+
+select.select-admin-status option {
+  background-color: #0f172a; /* Force dark background for option dropdowns */
+  color: #f8fafc; /* Force light text */
 }
 
 /* Photo Removal button overlay */
