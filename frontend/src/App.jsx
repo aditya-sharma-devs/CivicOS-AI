@@ -855,7 +855,7 @@ function App() {
                                     Confidence: {(issue.aiConfidence * 100).toFixed(0)}%
                                   </span>
                                 </div>
-                                <div style={{ fontSize: '12px', fontWeight: '700', color: '#1e3a8a', marginBottom: '4px' }}>
+                                <div style={{ fontSize: '12px', fontWeight: '700', color: '#93c5fd', marginBottom: '4px' }}>
                                   Detected Issue: {issue.aiDetectedIssue || issue.issueType}
                                 </div>
                                 <p className="ai-text">

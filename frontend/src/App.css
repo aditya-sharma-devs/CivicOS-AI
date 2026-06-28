@@ -432,6 +432,7 @@ textarea.form-control {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  padding-top: 24px;
   padding-bottom: 24px;
 }
 
@@ -490,7 +491,8 @@ textarea.form-control {
     height: 365px;
     max-height: 365px;
     flex-direction: column;
-    gap: 12px;
+    justify-content: space-between;
+    gap: 0;
   }
   .issue-card-content {
     flex-direction: row;
