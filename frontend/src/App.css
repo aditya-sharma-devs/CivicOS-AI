@@ -658,6 +658,7 @@ textarea.form-control {
   border: 1px solid rgba(199, 210, 254, 0.6);
   border-radius: var(--radius-md);
   padding: 8px 12px;
+  height: fit-content;
   margin-bottom: 8px;
   box-shadow: 0 4px 12px 0 rgba(79, 70, 229, 0.04);
   position: relative;
