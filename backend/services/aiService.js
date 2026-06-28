@@ -42,24 +42,28 @@ async function analyzeIssueImage(imagePath, mimeType, subject, issueType, descri
     
     const prompt = `
       You are an urban infrastructure safety AI. Analyze this image of a community issue. 
-      The citizen submitted the following report:
+      The citizen submitted the following report details:
       - Subject: ${subject}
       - Declared Category: ${issueType}
       - Description: ${description}
 
       Task:
-      1. Inspect the image to confirm if it contains an infrastructure or community hazard matching the report.
-      2. Assess the severity level of the hazard using these strict definitions for potholes and street damage:
+      1. Inspect the image to confirm if it contains an infrastructure or community hazard (e.g. potholes, road damage, water leaks, broken streetlights, piled garbage, damaged public assets) and if it reasonably matches the report subject and description.
+      2. If the image is completely unrelated to urban/community infrastructure issues, does not match the report subject/description, is a random picture (like a galaxy, animal, food, selfie, face, meme, text document, or blank placeholder), set "isValid" to false. Otherwise, set "isValid" to true.
+      3. If "isValid" is false, provide a clear explanation in "invalidReason" (e.g. "The uploaded image is a picture of space/galaxy and does not show any road damage or water leakage.").
+      4. Assess the severity level of the hazard using these strict definitions for potholes and street damage:
          - "Low": Small potholes/cracks (shallow, depth < 3cm, minor surface wear, no vehicle damage risk, only minor nuisance).
          - "Medium": Moderate potholes (depth 3-7cm, noticeable dip, slows vehicles down, moderate risk of tyres or rim damage but low immediate accident threat).
          - "High": Large/deep potholes (depth 8-12cm, substantial asphalt displacement, high risk of tyre blowouts, rim damage, or vehicle suspension damage).
          - "Critical": Massive hazards/potholes (depth > 12cm, extreme depth, immediate high risk of vehicle loss of control, skidding, or potential accident, particularly dangerous for two-wheelers/bikes).
          For other issue categories, scale the severity analogously based on immediate safety and accident threat.
-      3. Provide a confidence score between 0.0 and 1.0.
-      4. Describe what you see in a concise 1-2 sentences analysis.
+      5. Provide a confidence score between 0.0 and 1.0.
+      6. Describe what you see in a concise 1-2 sentences analysis.
 
       Return ONLY a raw JSON string matching the structure below. Do not wrap it in markdown formatting or code blocks:
       {
+        "isValid": true | false,
+        "invalidReason": "Detailed reason why the image does not match the report if isValid is false (otherwise empty string)",
         "detectedIssue": "Short name of the issue detected (e.g., Pothole, Damaged Streetlight)",
         "severity": "Low" | "Medium" | "High" | "Critical",
         "confidence": 0.85,
@@ -85,6 +89,8 @@ async function analyzeIssueImage(imagePath, mimeType, subject, issueType, descri
     try {
       const parsed = JSON.parse(cleanJson);
       return {
+        isValid: parsed.isValid !== false,
+        invalidReason: parsed.invalidReason || '',
         detectedIssue: parsed.detectedIssue || issueType,
         severity: ['Low', 'Medium', 'High', 'Critical'].includes(parsed.severity) ? parsed.severity : 'Medium',
         confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0.80,
@@ -94,6 +100,8 @@ async function analyzeIssueImage(imagePath, mimeType, subject, issueType, descri
       console.error('Failed to parse Gemini response as JSON. Response was:', responseText);
       // Fallback within Gemini failure
       return {
+        isValid: true,
+        invalidReason: '',
         detectedIssue: issueType,
         severity: 'Medium',
         confidence: 0.70,
@@ -145,6 +153,8 @@ function getFallbackAIAnalysis(subject, issueType, description) {
   }
 
   return {
+    isValid: true,
+    invalidReason: '',
     detectedIssue: issueType,
     severity,
     confidence,

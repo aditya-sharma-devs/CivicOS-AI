@@ -216,7 +216,62 @@ router.post('/', (req, res) => {
     const absoluteImagePath = req.file.path;
 
     try {
-      // 1. Duplicate Detection Check
+      // 1. Upload to Cloudinary if configured (with local fallback)
+      let finalImageUrl = localImagePath;
+      let isUploadedToCloudinary = false;
+      let cloudinaryPublicId = null;
+
+      if (isCloudinaryConfigured) {
+        try {
+          console.log('Uploading image to Cloudinary...');
+          const uploadFolder = process.env.CLOUDINARY_FOLDER || 'CivicOS_AI_v2';
+          const uploadResult = await cloudinary.uploader.upload(absoluteImagePath, {
+            folder: uploadFolder
+          });
+          finalImageUrl = uploadResult.secure_url;
+          cloudinaryPublicId = uploadResult.public_id;
+          isUploadedToCloudinary = true;
+          console.log('Image uploaded to Cloudinary successfully:', finalImageUrl);
+        } catch (cloudinaryError) {
+          console.error('Cloudinary upload failed, falling back to local server storage:', cloudinaryError.message);
+        }
+      }
+
+      // 2. AI Analysis & Image Validation Call (Multimodal evaluation)
+      const aiResults = await analyzeIssueImage(
+        absoluteImagePath,
+        req.file.mimetype,
+        subject,
+        issueType,
+        description
+      );
+
+      // 3. Validation Check: Discard report if AI determines the image does not match the details
+      if (!aiResults.isValid) {
+        console.log(`Validation failed: ${aiResults.invalidReason || 'Image content mismatch.'}`);
+        
+        // Clean up temporary local file
+        if (fs.existsSync(absoluteImagePath)) {
+          fs.unlinkSync(absoluteImagePath);
+        }
+        
+        // Clean up Cloudinary asset
+        if (isUploadedToCloudinary && cloudinaryPublicId) {
+          try {
+            await cloudinary.uploader.destroy(cloudinaryPublicId);
+            console.log('Cloudinary asset deleted due to validation failure.');
+          } catch (delErr) {
+            console.error('Failed to delete invalid asset from Cloudinary:', delErr.message);
+          }
+        }
+
+        return res.status(400).json({
+          message: `Validation warning: ${aiResults.invalidReason || 'The uploaded image does not match the subject and details of the reported issue. Please upload a correct image representing the problem.'}`,
+          isInvalidReport: true
+        });
+      }
+
+      // 4. Duplicate Detection Check
       // Look for active issues of the same type within a grid of +/- 0.001 degrees latitude and longitude (~111 meters)
       const latDiff = 0.001;
       const lngDiff = 0.001;
@@ -227,25 +282,6 @@ router.post('/', (req, res) => {
         latitude: { $gte: parsedLat - latDiff, $lte: parsedLat + latDiff },
         longitude: { $gte: parsedLng - lngDiff, $lte: parsedLng + lngDiff }
       });
-
-      // 1. Upload to Cloudinary if configured (with local fallback)
-      let finalImageUrl = localImagePath;
-      let isUploadedToCloudinary = false;
-
-      if (isCloudinaryConfigured) {
-        try {
-          console.log('Uploading image to Cloudinary...');
-          const uploadFolder = process.env.CLOUDINARY_FOLDER || 'CivicOS_AI_v2';
-          const uploadResult = await cloudinary.uploader.upload(absoluteImagePath, {
-            folder: uploadFolder
-          });
-          finalImageUrl = uploadResult.secure_url;
-          isUploadedToCloudinary = true;
-          console.log('Image uploaded to Cloudinary successfully:', finalImageUrl);
-        } catch (cloudinaryError) {
-          console.error('Cloudinary upload failed, falling back to local server storage:', cloudinaryError.message);
-        }
-      }
 
       if (existingDuplicate) {
         console.log(`Duplicate detected for issue type '${issueType}' at [${parsedLat}, ${parsedLng}]. Merging reports.`);
@@ -272,15 +308,7 @@ router.post('/', (req, res) => {
           issue: updatedIssue
         });
       }
-
-      // 2. AI Analysis Call (Mulitmodal evaluation)
-      const aiResults = await analyzeIssueImage(
-        absoluteImagePath,
-        req.file.mimetype,
-        subject,
-        issueType,
-        description
-      );
+      // 5. Create and Save New Issue
 
       // 3. Create and Save New Issue
       const newIssue = new Issue({
