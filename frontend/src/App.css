@@ -1482,7 +1482,7 @@ select.select-admin-status {
     font-size: 11px;
   }
 
-  .filter-grid {
+  .search-filter-grid {
     grid-template-columns: 1fr;
     gap: 12px;
   }

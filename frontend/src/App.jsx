@@ -67,6 +67,7 @@ function App() {
   const [stateFilter, setStateFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [severityFilter, setSeverityFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
   // Issue Reporting Form
@@ -116,7 +117,16 @@ function App() {
   useEffect(() => {
     fetchIssues(1);
     fetchAnalytics();
-  }, [debouncedSearch, stateFilter, statusFilter, categoryFilter, sortBy]);
+  }, [debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
+
+  // Background polling to synchronize state with server in real-time (every 7 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchIssues(currentPage);
+      fetchAnalytics();
+    }, 7000);
+    return () => clearInterval(interval);
+  }, [currentPage, debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
 
   // Check backend server connection
   useEffect(() => {
@@ -146,6 +156,7 @@ function App() {
       if (stateFilter) query += `&state=${encodeURIComponent(stateFilter)}`;
       if (statusFilter) query += `&status=${encodeURIComponent(statusFilter)}`;
       if (categoryFilter) query += `&issueType=${encodeURIComponent(categoryFilter)}`;
+      if (severityFilter) query += `&severity=${encodeURIComponent(severityFilter)}`;
       
       // If admin view, allow seeing archived
       if (currentView === 'admin') {
@@ -733,6 +744,20 @@ function App() {
                       <option value="Resolved">Resolved</option>
                       <option value="Rejected">Rejected</option>
                       {currentView === 'admin' && <option value="Archived">Archived</option>}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>Severity</label>
+                    <select 
+                      className="form-control"
+                      value={severityFilter}
+                      onChange={e => setSeverityFilter(e.target.value)}
+                    >
+                      <option value="">All Severities</option>
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Critical">Critical</option>
                     </select>
                   </div>
                   <div>
