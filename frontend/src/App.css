@@ -5,16 +5,25 @@
   --primary-glow: rgba(99, 102, 241, 0.15);
   --primary-hover: #818cf8;
   --secondary: #475569;
-  
+
   --bg-gradient: radial-gradient(circle at 50% 50%, #0c1129 0%, #050711 100%);
-  --header-gradient: linear-gradient(135deg, #090d1a 0%, #0d1326 50%, #131a38 100%);
-  --ai-gradient: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.7) 100%);
+  --header-gradient: linear-gradient(
+    135deg,
+    #090d1a 0%,
+    #0d1326 50%,
+    #131a38 100%
+  );
+  --ai-gradient: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.6) 0%,
+    rgba(15, 23, 42, 0.7) 100%
+  );
   --glass-bg: rgba(13, 19, 36, 0.65);
   --glass-border: rgba(255, 255, 255, 0.06);
-  
+
   --text: #f8fafc;
   --text-muted: #94a3b8;
-  
+
   /* Status Colors */
   --status-pending: #94a3b8;
   --status-review: #38bdf8;
@@ -37,15 +46,19 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background: var(--bg-gradient);
   background-color: #050711;
   background-attachment: fixed;
   color: var(--text);
 }
 
-h1, h2, h3, h4, .logo-section h1 {
-  font-family: 'Outfit', sans-serif;
+h1,
+h2,
+h3,
+h4,
+.logo-section h1 {
+  font-family: "Outfit", sans-serif;
 }
 
 .app-container {
@@ -72,13 +85,17 @@ header {
 }
 
 header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -20%;
   width: 60%;
   height: 200%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+  background: radial-gradient(
+    circle,
+    rgba(99, 102, 241, 0.15) 0%,
+    transparent 60%
+  );
   pointer-events: none;
 }
 
@@ -189,7 +206,7 @@ header::before {
 }
 
 .stat-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -203,15 +220,31 @@ header::before {
   box-shadow: var(--shadow-lg);
 }
 
-.stat-card.pending::before { background-color: var(--status-pending); }
-.stat-card.resolved::before { background-color: var(--status-resolved); }
-.stat-card.critical::before { background-color: var(--severity-critical); }
-.stat-card.today::before { background-color: var(--status-review); }
+.stat-card.pending::before {
+  background-color: var(--status-pending);
+}
+.stat-card.resolved::before {
+  background-color: var(--status-resolved);
+}
+.stat-card.critical::before {
+  background-color: var(--severity-critical);
+}
+.stat-card.today::before {
+  background-color: var(--status-review);
+}
 
-.stat-card.pending .stat-val { color: var(--warning); }
-.stat-card.resolved .stat-val { color: var(--success); }
-.stat-card.critical .stat-val { color: var(--danger); }
-.stat-card.today .stat-val { color: var(--status-review); }
+.stat-card.pending .stat-val {
+  color: var(--warning);
+}
+.stat-card.resolved .stat-val {
+  color: var(--success);
+}
+.stat-card.critical .stat-val {
+  color: var(--danger);
+}
+.stat-card.today .stat-val {
+  color: var(--status-review);
+}
 
 .stat-label {
   font-size: 11px;
@@ -285,7 +318,7 @@ header::before {
 }
 
 .card h2::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -332,7 +365,9 @@ header::before {
   outline: none;
   border-color: var(--primary);
   background-color: rgba(15, 23, 42, 0.75);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2), 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 select.form-control {
@@ -442,6 +477,7 @@ textarea.form-control {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  max-height: 720px;
   padding-top: 24px;
   padding-bottom: 24px;
 }
@@ -453,7 +489,6 @@ textarea.form-control {
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  overflow: hidden;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -463,7 +498,9 @@ textarea.form-control {
 
 .issue-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.08);
+  box-shadow:
+    0 20px 40px rgba(99, 102, 241, 0.15),
+    0 0 20px rgba(99, 102, 241, 0.08);
   border-color: rgba(99, 102, 241, 0.35);
 }
 
@@ -569,7 +606,7 @@ textarea.form-control {
 }
 
 .issue-id {
-  font-family: 'Outfit', monospace;
+  font-family: "Outfit", monospace;
   font-weight: 800;
   color: var(--primary-hover);
   background-color: var(--primary-glow);
@@ -609,18 +646,52 @@ textarea.form-control {
 }
 
 /* Status Pill Color Themes */
-.pill-pending { background-color: #cbd5e1; color: #334155; }
-.pill-review { background-color: #bae6fd; color: #0369a1; }
-.pill-progress { background-color: #f3e8ff; color: #6b21a8; }
-.pill-resolved { background-color: #dcfce7; color: #15803d; }
-.pill-rejected { background-color: #fee2e2; color: #991b1b; }
-.pill-archived { background-color: #e2e8f0; color: #475569; }
+.pill-pending {
+  background-color: #cbd5e1;
+  color: #334155;
+}
+.pill-review {
+  background-color: #bae6fd;
+  color: #0369a1;
+}
+.pill-progress {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+}
+.pill-resolved {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+.pill-rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+.pill-archived {
+  background-color: #e2e8f0;
+  color: #475569;
+}
 
 /* Severity Pill Color Themes */
-.pill-sev-low { background-color: rgba(16, 185, 129, 0.1); color: var(--severity-low); border: 1px solid rgba(16, 185, 129, 0.2); }
-.pill-sev-medium { background-color: rgba(234, 179, 8, 0.1); color: var(--severity-medium); border: 1px solid rgba(234, 179, 8, 0.2); }
-.pill-sev-high { background-color: rgba(249, 115, 22, 0.1); color: var(--severity-high); border: 1px solid rgba(249, 115, 22, 0.2); }
-.pill-sev-critical { background-color: rgba(244, 63, 94, 0.1); color: var(--severity-critical); border: 1px solid rgba(244, 63, 94, 0.2); }
+.pill-sev-low {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--severity-low);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.pill-sev-medium {
+  background-color: rgba(234, 179, 8, 0.1);
+  color: var(--severity-medium);
+  border: 1px solid rgba(234, 179, 8, 0.2);
+}
+.pill-sev-high {
+  background-color: rgba(249, 115, 22, 0.1);
+  color: var(--severity-high);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+}
+.pill-sev-critical {
+  background-color: rgba(244, 63, 94, 0.1);
+  color: var(--severity-critical);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
 
 .issue-subject {
   font-size: 17px;
@@ -687,13 +758,17 @@ textarea.form-control {
 }
 
 .ai-insights-box::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   right: 0;
   width: 60px;
   height: 100%;
-  background: radial-gradient(circle, rgba(79, 70, 229, 0.05) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(79, 70, 229, 0.05) 0%,
+    transparent 70%
+  );
   pointer-events: none;
 }
 
@@ -866,7 +941,9 @@ textarea.form-control {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.4),
+    0 10px 10px -5px rgba(0, 0, 0, 0.3);
   border-left: 5px solid transparent;
   animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -973,14 +1050,27 @@ textarea.form-control {
 }
 
 @keyframes pulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Background Decorative Glowing Ambient Orbs */
@@ -999,7 +1089,12 @@ textarea.form-control {
   right: -100px;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, #6366f1 0%, #4f46e5 70%, transparent 100%);
+  background: radial-gradient(
+    circle,
+    #6366f1 0%,
+    #4f46e5 70%,
+    transparent 100%
+  );
 }
 
 .bg-orb-2 {
@@ -1007,7 +1102,12 @@ textarea.form-control {
   left: -100px;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, #38bdf8 0%, #0ea5e9 70%, transparent 100%);
+  background: radial-gradient(
+    circle,
+    #38bdf8 0%,
+    #0ea5e9 70%,
+    transparent 100%
+  );
   animation-delay: -3s;
 }
 
@@ -1016,15 +1116,26 @@ textarea.form-control {
   left: 15%;
   width: 450px;
   height: 450px;
-  background: radial-gradient(circle, #a855f7 0%, #7c3aed 70%, transparent 100%);
+  background: radial-gradient(
+    circle,
+    #a855f7 0%,
+    #7c3aed 70%,
+    transparent 100%
+  );
   opacity: 0.15;
   animation-delay: -7s;
 }
 
 @keyframes float {
-  0% { transform: translateY(0) scale(1) rotate(0deg); }
-  50% { transform: translateY(-30px) scale(1.05) rotate(90deg); }
-  100% { transform: translateY(0) scale(1) rotate(180deg); }
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-30px) scale(1.05) rotate(90deg);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(180deg);
+  }
 }
 
 /* Smooth entry animations for feed issues */
@@ -1050,7 +1161,9 @@ textarea.form-control {
 /* Premium card hover glowing effects */
 .issue-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 25px 50px -12px rgba(30, 27, 75, 0.12), 0 10px 20px -10px rgba(30, 27, 75, 0.1);
+  box-shadow:
+    0 25px 50px -12px rgba(30, 27, 75, 0.12),
+    0 10px 20px -10px rgba(30, 27, 75, 0.1);
 }
 
 .issue-card.severity-high:hover {
@@ -1099,8 +1212,20 @@ textarea.form-control {
   border-radius: var(--radius-lg);
   margin-bottom: 20px;
   scroll-behavior: smooth;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 3%,
+    black 97%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 3%,
+    black 97%,
+    transparent 100%
+  );
 }
 
 @media (min-width: 992px) {
@@ -1109,7 +1234,6 @@ textarea.form-control {
     min-height: 0;
   }
 }
-
 
 /* Admin panel status select style */
 select.select-admin-status {
