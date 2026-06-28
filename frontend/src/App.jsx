@@ -544,7 +544,8 @@ function App() {
           </form>
         </div>
       ) : (
-        <div className="main-grid">
+        <>
+          <div className="main-grid">
           {/* Left column - Submission form (only shown in citizen view) */}
           {currentView === 'citizen' && (
             <div className="card reporting-form-card">
@@ -962,30 +963,32 @@ function App() {
               </div>
             )}
 
-            {/* Pagination block */}
-            {totalPages > 1 && (
-              <div className="pagination-container">
-                <button 
-                  className="btn btn-outline" 
-                  disabled={currentPage === 1}
-                  onClick={() => fetchIssues(currentPage - 1)}
-                >
-                  ◀ Previous
-                </button>
-                <span className="page-info">
-                  Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
-                </span>
-                <button 
-                  className="btn btn-outline" 
-                  disabled={currentPage === totalPages}
-                  onClick={() => fetchIssues(currentPage + 1)}
-                >
-                  Next ▶
-                </button>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Pagination block (now positioned below both form and feed columns) */}
+        {totalPages > 1 && (
+          <div className="pagination-container">
+            <button 
+              className="btn btn-outline" 
+              disabled={currentPage === 1}
+              onClick={() => fetchIssues(currentPage - 1)}
+            >
+              ◀ Previous
+            </button>
+            <span className="page-info">
+              Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+            </span>
+            <button 
+              className="btn btn-outline" 
+              disabled={currentPage === totalPages}
+              onClick={() => fetchIssues(currentPage + 1)}
+            >
+              Next ▶
+            </button>
+          </div>
+        )}
+      </>
     )}
     </div>
   );
