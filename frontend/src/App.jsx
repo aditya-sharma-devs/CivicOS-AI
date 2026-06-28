@@ -183,7 +183,6 @@ function App() {
 
   const showAlert = (type, message) => {
     setAlert({ type, message });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => {
       setAlert(null);
     }, 6000);
@@ -302,7 +301,11 @@ function App() {
         fetchIssues(1);
         fetchAnalytics();
       } else {
-        showAlert('danger', data.message || 'Failed to submit issue.');
+        if (data.isInvalidReport) {
+          showAlert('danger', `Validation warning: add valid issue. ${data.message || 'The uploaded image does not correspond to the details.'}`);
+        } else {
+          showAlert('danger', data.message || 'Failed to submit issue.');
+        }
       }
     } catch (err) {
       showAlert('danger', 'Server connection failed. Could not upload report.');
@@ -767,7 +770,7 @@ function App() {
             ) : (
               <div className="issues-scroll-container">
                 <div className="issues-list">
-                {issues.map((issue) => {
+                {issues.filter(issue => (issue.aiDetectedIssue || '').toLowerCase() !== 'none').map((issue) => {
                   const statusClass = `pill-${issue.status.toLowerCase().replace(' ', '-')}`;
                   const severityClass = `pill-sev-${issue.severity.toLowerCase()}`;
                   const isExpanded = expandedDuplicates[issue._id] || false;
