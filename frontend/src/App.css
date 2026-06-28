@@ -585,7 +585,7 @@ textarea.form-control {
 }
 
 .issue-details {
-  padding: 24px;
+  padding: 0;
   display: flex;
   flex-direction: column;
 }
@@ -1373,4 +1373,129 @@ select.select-admin-status {
 .coords-link:hover {
   color: var(--primary-hover);
   text-decoration: underline;
+}
+
+/* Comprehensive Responsive Styling for Mobile Devices (Width <= 576px) */
+@media (max-width: 576px) {
+  .app-container {
+    padding: 12px;
+  }
+  
+  header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    gap: 12px;
+  }
+  
+  .logo-section h1 {
+    font-size: 26px;
+    margin-bottom: 4px;
+  }
+  
+  .logo-section p {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  
+  .api-status-badge {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  
+  .nav-buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .nav-buttons .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .analytics-grid > :nth-child(5) {
+    grid-column: span 2;
+  }
+  
+  .stat-card {
+    padding: 14px 16px;
+    gap: 4px;
+  }
+  
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.3px;
+  }
+  
+  .stat-val {
+    font-size: 20px;
+  }
+
+  .main-grid {
+    gap: 20px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-row-2col {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .feed-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .feed-title-section {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .duplicates-container {
+    padding: 10px;
+  }
+  
+  .duplicate-item {
+    font-size: 11px;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .issue-card-footer {
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .footer-meta-row {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
 }
