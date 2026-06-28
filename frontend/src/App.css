@@ -242,20 +242,11 @@ header::before {
     align-items: stretch;
   }
   .reporting-form-card {
-    height: calc(100vh - 160px);
-    min-height: 680px;
-    max-height: 850px;
-    overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .reporting-form-card::-webkit-scrollbar {
-    display: none;
+    height: auto;
+    overflow: visible;
   }
   .issues-feed-section {
-    height: calc(100vh - 160px);
-    min-height: 680px;
-    max-height: 850px;
+    height: 100%;
     overflow: hidden;
   }
 }
