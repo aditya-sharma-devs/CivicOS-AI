@@ -246,9 +246,15 @@ router.post('/', (req, res) => {
         description
       );
 
-      // 3. Validation Check: Discard report if AI determines the image does not match the details
-      if (!aiResults.isValid) {
-        console.log(`Validation failed: ${aiResults.invalidReason || 'Image content mismatch.'}`);
+      // 3. Validation Check: Discard report if AI determines the image does not match the details or is unrelated
+      const isNoneIssue = aiResults.detectedIssue && (
+        aiResults.detectedIssue.toLowerCase() === 'none' ||
+        aiResults.detectedIssue.toLowerCase().includes('no hazard') ||
+        aiResults.detectedIssue.toLowerCase().includes('unrelated')
+      );
+
+      if (!aiResults.isValid || isNoneIssue) {
+        console.log(`Validation failed: ${aiResults.invalidReason || 'Image content mismatch.'} Detected: ${aiResults.detectedIssue}`);
         
         // Clean up temporary local file
         if (fs.existsSync(absoluteImagePath)) {
@@ -266,7 +272,7 @@ router.post('/', (req, res) => {
         }
 
         return res.status(400).json({
-          message: `Validation warning: ${aiResults.invalidReason || 'The uploaded image does not match the subject and details of the reported issue. Please upload a correct image representing the problem.'}`,
+          message: `Validation warning: ${aiResults.invalidReason || 'The uploaded image does not contain any recognizable urban infrastructure issue or community hazard matching the report details.'}`,
           isInvalidReport: true
         });
       }

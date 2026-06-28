@@ -49,8 +49,8 @@ async function analyzeIssueImage(imagePath, mimeType, subject, issueType, descri
 
       Task:
       1. Inspect the image to confirm if it contains an infrastructure or community hazard (e.g. potholes, road damage, water leaks, broken streetlights, piled garbage, damaged public assets) and if it reasonably matches the report subject and description.
-      2. If the image is completely unrelated to urban/community infrastructure issues, does not match the report subject/description, is a random picture (like a galaxy, animal, food, selfie, face, meme, text document, or blank placeholder), set "isValid" to false. Otherwise, set "isValid" to true.
-      3. If "isValid" is false, provide a clear explanation in "invalidReason" (e.g. "The uploaded image is a picture of space/galaxy and does not show any road damage or water leakage.").
+      2. If the image contains NO community/infrastructure hazard, is a random upload (like a video call screenshot, animal, selfie, face, food, meme, text document, or blank placeholder), or does not match the report details (e.g. subject says pothole but image shows a meeting screenshot), you MUST set "isValid" to false, and set "detectedIssue" to "None".
+      3. If "isValid" is false, provide a clear explanation in "invalidReason" (e.g. "The uploaded image is a screenshot of a video call and does not show any infrastructure issues or community hazards.").
       4. Assess the severity level of the hazard using these strict definitions for potholes and street damage:
          - "Low": Small potholes/cracks (shallow, depth < 3cm, minor surface wear, no vehicle damage risk, only minor nuisance).
          - "Medium": Moderate potholes (depth 3-7cm, noticeable dip, slows vehicles down, moderate risk of tyres or rim damage but low immediate accident threat).
