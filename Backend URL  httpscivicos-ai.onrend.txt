@@ -1,3 +1,0 @@
-Backend URL:  https://civicos-ai.onrender.com
-
-Frontend URL: 
