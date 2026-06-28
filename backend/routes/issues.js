@@ -8,6 +8,75 @@ const authMiddleware = require('../middleware/authMiddleware');
 const { analyzeIssueImage } = require('../services/aiService');
 const cloudinary = require('cloudinary').v2;
 
+// Helper to verify that Gemini's image analysis matches the reported issue type
+function verifyMatchingContent(issueType, subject, description, aiResults) {
+  const categoryKeywords = {
+    'pothole': ['pothole', 'road', 'street', 'asphalt', 'pavement', 'crack', 'potholes', 'cracks', 'hole', 'holes'],
+    'water leakage': ['water', 'leak', 'pipe', 'leakage', 'drain', 'flooding', 'wet', 'puddle', 'spill', 'burst'],
+    'damaged streetlight': ['light', 'streetlight', 'lamp', 'bulb', 'pole', 'streetlights', 'dark', 'wiring', 'post'],
+    'waste management': ['waste', 'garbage', 'trash', 'rubbish', 'litter', 'pile', 'bin', 'dump', 'refuse', 'plastic'],
+    'public infrastructure': ['infrastructure', 'bench', 'sign', 'wall', 'concrete', 'bridge', 'pavement', 'sidewalk', 'railing', 'fence', 'damage', 'road']
+  };
+
+  const lowerIssueType = issueType.toLowerCase();
+  const lowerAnalysis = (aiResults.analysis || '').toLowerCase();
+  const lowerDetected = (aiResults.detectedIssue || '').toLowerCase();
+  const lowerSubject = subject.toLowerCase();
+
+  // If detected issue is explicitly None, it's invalid
+  if (lowerDetected === 'none' || lowerDetected.includes('no hazard') || lowerDetected.includes('unrelated')) {
+    return {
+      isValid: false,
+      reason: 'No infrastructure issue or community hazard was detected in the uploaded image.'
+    };
+  }
+
+  // If the analysis mentions screenshots, video calls, or no evidence of infrastructure
+  if (
+    lowerAnalysis.includes('video conference') ||
+    lowerAnalysis.includes('screenshot') ||
+    lowerAnalysis.includes('no evidence') ||
+    lowerAnalysis.includes('is a picture of') && lowerAnalysis.includes('not showing') ||
+    lowerAnalysis.includes('google meet') ||
+    lowerAnalysis.includes('zoom call')
+  ) {
+    return {
+      isValid: false,
+      reason: 'The uploaded image appears to be a screenshot, document, or unrelated picture rather than a real-world infrastructure hazard.'
+    };
+  }
+
+  let isRelated = false;
+
+  // 1. Check if detected issue type matches declared category
+  if (lowerDetected.includes(lowerIssueType) || lowerIssueType.includes(lowerDetected)) {
+    isRelated = true;
+  }
+
+  // 2. Check keyword overlap
+  const keywords = categoryKeywords[lowerIssueType] || [];
+  for (const keyword of keywords) {
+    if (lowerAnalysis.includes(keyword) || lowerSubject.includes(keyword)) {
+      isRelated = true;
+      break;
+    }
+  }
+
+  // If category is "Other", we allow it as long as some hazard was detected
+  if (lowerIssueType === 'other') {
+    isRelated = true;
+  }
+
+  if (!isRelated) {
+    return {
+      isValid: false,
+      reason: `The image analysis description does not match your declared category ("${issueType}"). Please upload an image that corresponds to the reported issue.`
+    };
+  }
+
+  return { isValid: true };
+}
+
 // Configure Cloudinary only if credentials are provided in env
 const isCloudinaryConfigured = 
   process.env.CLOUDINARY_CLOUD_NAME && 
@@ -247,14 +316,11 @@ router.post('/', (req, res) => {
       );
 
       // 3. Validation Check: Discard report if AI determines the image does not match the details or is unrelated
-      const isNoneIssue = aiResults.detectedIssue && (
-        aiResults.detectedIssue.toLowerCase() === 'none' ||
-        aiResults.detectedIssue.toLowerCase().includes('no hazard') ||
-        aiResults.detectedIssue.toLowerCase().includes('unrelated')
-      );
+      const verification = verifyMatchingContent(issueType, subject, description, aiResults);
 
-      if (!aiResults.isValid || isNoneIssue) {
-        console.log(`Validation failed: ${aiResults.invalidReason || 'Image content mismatch.'} Detected: ${aiResults.detectedIssue}`);
+      if (!aiResults.isValid || !verification.isValid) {
+        const warningReason = verification.reason || aiResults.invalidReason || 'The uploaded image does not contain any recognizable urban infrastructure issue or community hazard matching the report details.';
+        console.log(`Validation failed: ${warningReason} Detected: ${aiResults.detectedIssue}`);
         
         // Clean up temporary local file
         if (fs.existsSync(absoluteImagePath)) {
@@ -272,7 +338,7 @@ router.post('/', (req, res) => {
         }
 
         return res.status(400).json({
-          message: `Validation warning: ${aiResults.invalidReason || 'The uploaded image does not contain any recognizable urban infrastructure issue or community hazard matching the report details.'}`,
+          message: `Validation warning: ${warningReason}`,
           isInvalidReport: true
         });
       }
