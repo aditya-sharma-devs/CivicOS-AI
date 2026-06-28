@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (
+let rawApiBase = import.meta.env.VITE_API_BASE_URL || (
   window.location.origin.includes('localhost')
     ? 'http://localhost:5000/api'
     : 'https://civicos-ai.onrender.com/api'
 );
 
-const STATIC_BASE_URL = import.meta.env.VITE_STATIC_BASE_URL || (
+// If VITE_API_BASE_URL is set but lacks /api prefix, auto-append it
+if (rawApiBase && !rawApiBase.endsWith('/api') && !rawApiBase.endsWith('/api/')) {
+  rawApiBase = rawApiBase.endsWith('/') ? `${rawApiBase.slice(0, -1)}/api` : `${rawApiBase}/api`;
+}
+const API_BASE_URL = rawApiBase;
+
+let rawStaticBase = import.meta.env.VITE_STATIC_BASE_URL || (
   window.location.origin.includes('localhost')
     ? 'http://localhost:5000'
     : 'https://civicos-ai.onrender.com'
 );
+if (rawStaticBase && rawStaticBase.endsWith('/')) {
+  rawStaticBase = rawStaticBase.slice(0, -1);
+}
+const STATIC_BASE_URL = rawStaticBase;
 
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
