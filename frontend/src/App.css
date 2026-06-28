@@ -242,13 +242,13 @@ header::before {
     align-items: stretch;
   }
   .reporting-form-card {
-    height: 820px;
+    height: auto;
     overflow: visible;
   }
   .issues-feed-section {
-    display: flex;
-    flex-direction: column;
-    height: 820px;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    height: 100%;
     overflow: hidden;
   }
 }
@@ -1105,8 +1105,7 @@ textarea.form-control {
 
 @media (min-width: 992px) {
   .issues-scroll-container {
-    flex: 1;
-    height: 0;
+    height: 100%;
     min-height: 0;
   }
 }
