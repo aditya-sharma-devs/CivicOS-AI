@@ -216,7 +216,7 @@ function App() {
         showAlert('danger', 'Unable to retrieve location. Please input manually or grant browser permissions.');
         setIsGpsLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 

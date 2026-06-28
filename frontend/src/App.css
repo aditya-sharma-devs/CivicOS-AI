@@ -242,7 +242,9 @@ header::before {
     align-items: stretch;
   }
   .reporting-form-card {
-    height: 800px;
+    height: calc(100vh - 160px);
+    min-height: 680px;
+    max-height: 850px;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -251,7 +253,9 @@ header::before {
     display: none;
   }
   .issues-feed-section {
-    height: 800px;
+    height: calc(100vh - 160px);
+    min-height: 680px;
+    max-height: 850px;
     overflow: hidden;
   }
 }
