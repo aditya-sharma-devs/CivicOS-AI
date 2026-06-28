@@ -831,7 +831,7 @@ function App() {
 
                         {/* Details Panel */}
                         <div className="issue-details">
-                          <div>
+                          <div className='issue-details-block'>
                             <div className="issue-top">
                               <div className="issue-id-cat">
                                 <span className="issue-id">{issue.readableId}</span>

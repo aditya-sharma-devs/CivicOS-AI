@@ -570,6 +570,12 @@ textarea.form-control::-webkit-scrollbar{
   }
 }
 
+.issue-details-block{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 @media (min-width: 1200px) {
   .issue-card-image {
     width: 220px;
