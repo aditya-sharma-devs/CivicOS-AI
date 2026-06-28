@@ -787,7 +787,15 @@ function App() {
             </div>
 
             {/* Issues Cards */}
-            {issues.length === 0 ? (
+            {loading && issues.length === 0 ? (
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 40px', gap: '20px', color: 'var(--text-muted)' }}>
+                <div className="loading-spinner"></div>
+                <h3 style={{ color: 'white', margin: 0 }}>Connecting to CivicOS database...</h3>
+                <p style={{ margin: 0, fontSize: '13px', textAlign: 'center', maxWidth: '380px', lineHeight: '1.5' }}>
+                  Our production backend is waking up from inactivity. This may take up to 45–60 seconds on a cold start. Thank you for your patience!
+                </p>
+              </div>
+            ) : issues.length === 0 ? (
               <div className="card" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                 <h3>No infrastructure reports found.</h3>
                 <p>Try resetting filters or search query.</p>
