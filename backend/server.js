@@ -29,7 +29,7 @@ app.use(cors({
 // Rate Limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 150, // Limit each IP to 150 requests per 15 mins
+  max: 1500, // Limit each IP to 1500 requests per 15 mins to support background state polling
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many requests from this IP address. Please try again in 15 minutes.' }

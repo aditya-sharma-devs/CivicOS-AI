@@ -119,12 +119,12 @@ function App() {
     fetchAnalytics();
   }, [debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
 
-  // Background polling to synchronize state with server in real-time (every 7 seconds)
+  // Background polling to synchronize state with server in real-time (every 15 seconds)
   useEffect(() => {
     const interval = setInterval(() => {
       fetchIssues(currentPage);
       fetchAnalytics();
-    }, 7000);
+    }, 15000);
     return () => clearInterval(interval);
   }, [currentPage, debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
 
