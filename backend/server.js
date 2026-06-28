@@ -88,7 +88,9 @@ const runLegacySpamCleanup = async () => {
       $or: [
         { aiDetectedIssue: 'None' },
         { aiDetectedIssue: 'none' },
-        { aiDetectedIssue: { $regex: /none/i } }
+        { aiDetectedIssue: { $regex: /none/i } },
+        { aiDetectedIssue: { $regex: /no /i } },
+        { aiDetectedIssue: { $regex: /not /i } }
       ]
     });
     if (result.deletedCount > 0) {

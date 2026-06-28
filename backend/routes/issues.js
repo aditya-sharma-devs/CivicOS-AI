@@ -23,15 +23,38 @@ function verifyMatchingContent(issueType, subject, description, aiResults) {
   const lowerDetected = (aiResults.detectedIssue || '').toLowerCase();
   const lowerSubject = subject.toLowerCase();
 
-  // If detected issue is explicitly None, it's invalid
-  if (lowerDetected === 'none' || lowerDetected.includes('no hazard') || lowerDetected.includes('unrelated')) {
+  // 1. Ensure the detected issue actually matches one of the known valid categories (or is "Other")
+  const validCategories = [
+    'pothole',
+    'water leakage',
+    'damaged streetlight',
+    'waste management',
+    'public infrastructure'
+  ];
+
+  let matchesCategory = false;
+  for (const cat of validCategories) {
+    if (lowerDetected.includes(cat)) {
+      matchesCategory = true;
+      break;
+    }
+  }
+
+  // 2. Check for negation words in the detected issue type (e.g. "no pothole", "no public infrastructure", "no hazard", "none")
+  const hasNegation = 
+    lowerDetected.includes('no ') || 
+    lowerDetected.includes('not ') || 
+    lowerDetected.includes('none') || 
+    lowerDetected.includes('unrelated');
+
+  if (hasNegation || (!matchesCategory && lowerIssueType !== 'other')) {
     return {
       isValid: false,
       reason: 'No infrastructure issue or community hazard was detected in the uploaded image.'
     };
   }
 
-  // If the analysis mentions screenshots, video calls, or no evidence of infrastructure
+  // 3. If the analysis mentions screenshots, video calls, or no evidence of infrastructure
   if (
     lowerAnalysis.includes('video conference') ||
     lowerAnalysis.includes('screenshot') ||
@@ -48,12 +71,12 @@ function verifyMatchingContent(issueType, subject, description, aiResults) {
 
   let isRelated = false;
 
-  // 1. Check if detected issue type matches declared category
-  if (lowerDetected.includes(lowerIssueType) || lowerIssueType.includes(lowerDetected)) {
+  // 4. Check if detected issue type matches declared category (only if no negation)
+  if (!hasNegation && (lowerDetected.includes(lowerIssueType) || lowerIssueType.includes(lowerDetected))) {
     isRelated = true;
   }
 
-  // 2. Check keyword overlap
+  // 5. Check keyword overlap
   const keywords = categoryKeywords[lowerIssueType] || [];
   for (const keyword of keywords) {
     if (lowerAnalysis.includes(keyword) || lowerSubject.includes(keyword)) {
