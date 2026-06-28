@@ -241,6 +241,19 @@ header::before {
     grid-template-columns: 410px 1fr;
     align-items: stretch;
   }
+  .reporting-form-card {
+    height: 800px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .reporting-form-card::-webkit-scrollbar {
+    display: none;
+  }
+  .issues-feed-section {
+    height: 800px;
+    overflow: hidden;
+  }
 }
 
 .reporting-form-card {
@@ -1211,4 +1224,15 @@ select.select-admin-status {
     font-size: 11px;
     line-height: 1.35;
   }
+}
+
+.coords-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.coords-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
 }

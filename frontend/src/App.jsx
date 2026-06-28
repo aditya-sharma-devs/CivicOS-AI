@@ -875,7 +875,15 @@ function App() {
                             📍 {issue.place}, {issue.district}, {issue.state}
                           </span>
                           <span className="footer-meta-item">
-                            🗺️ {issue.latitude}, {issue.longitude}
+                            🗺️{' '}
+                            <a 
+                              href={`https://www.google.com/maps?q=${issue.latitude},${issue.longitude}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="coords-link"
+                            >
+                              {issue.latitude}, {issue.longitude}
+                            </a>
                           </span>
                           <span className="footer-meta-item">
                             📅 {new Date(issue.createdAt).toLocaleString()}
