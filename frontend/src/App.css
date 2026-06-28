@@ -955,11 +955,11 @@ textarea.form-control::-webkit-scrollbar{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.4),
-    0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
   border-left: 5px solid transparent;
   animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 @keyframes slideInLeft {
@@ -974,23 +974,23 @@ textarea.form-control::-webkit-scrollbar{
 }
 
 .alert-success {
-  background-color: rgba(16, 185, 129, 0.12);
+  background-color: #0b1512; /* Solid dark success backing */
   color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.4);
   border-left: 5px solid var(--status-resolved);
 }
 
 .alert-danger {
-  background-color: rgba(244, 63, 94, 0.12);
+  background-color: #170d0f; /* Solid dark danger backing */
   color: #f43f5e;
-  border: 1px solid rgba(244, 63, 94, 0.25);
+  border: 1px solid rgba(244, 63, 94, 0.4);
   border-left: 5px solid var(--status-rejected);
 }
 
 .alert-info {
-  background-color: rgba(56, 189, 248, 0.12);
+  background-color: #0d161a; /* Solid dark info backing */
   color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.4);
   border-left: 5px solid var(--status-review);
 }
 
