@@ -383,8 +383,14 @@ select.form-control {
 }
 
 textarea.form-control {
-  min-height: 100px;
-  resize: vertical;
+  height: 120px;
+  resize: none;
+  overflow-y: scroll;
+}
+
+textarea.form-control::-webkit-scrollbar{
+  background: transparent;
+  width: 3px;
 }
 
 .geo-input-group {
