@@ -1058,46 +1058,45 @@ textarea.form-control {
 .issue-card.severity-critical:hover {
   box-shadow: 0 20px 40px -10px rgba(244, 63, 94, 0.28);
 }
-/* Global Scrollbar Customization */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.35);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.25);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  transition: all 0.3s ease;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.55);
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-/* Dashboard Scroll Container */
+/* Custom Scrollbar specifically for the Issues Scroll Container */
 .issues-scroll-container {
   height: 75vh;
   overflow-y: auto;
-  padding-right: 0;
+  padding-right: 8px;
   border-radius: var(--radius-lg);
   margin-bottom: 20px;
   scroll-behavior: smooth;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
   
-  /* Hide scrollbar */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  /* Firefox Scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.25) rgba(15, 23, 42, 0.35);
 }
 
 .issues-scroll-container::-webkit-scrollbar {
-  display: none;
+  display: block;
+  width: 8px;
+  height: 8px;
+}
+
+.issues-scroll-container::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.35);
+  border-radius: 10px;
+}
+
+.issues-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.25);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+.issues-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.55);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 @media (min-width: 992px) {
