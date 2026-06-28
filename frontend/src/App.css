@@ -479,15 +479,15 @@ textarea.form-control {
 
 @media (min-width: 768px) {
   .issue-card {
-    height: 330px;
-    max-height: 330px;
+    height: 350px;
+    max-height: 350px;
     flex-direction: column;
     gap: 12px;
   }
   .issue-card-content {
     flex-direction: row;
     gap: 20px;
-    height: 240px;
+    height: 260px;
     flex-shrink: 0;
   }
   .issue-card-image {
@@ -502,7 +502,7 @@ textarea.form-control {
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
-    gap: 10px;
+    gap: 6px;
   }
 }
 
