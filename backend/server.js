@@ -81,6 +81,29 @@ const runResolvedIssuesCleanup = async () => {
   }
 };
 
+const runLegacySpamCleanup = async () => {
+  console.log('[Database-Cleanup] Scanning for legacy spam reports...');
+  try {
+    const result = await Issue.deleteMany({
+      $or: [
+        { aiDetectedIssue: 'None' },
+        { aiDetectedIssue: 'none' },
+        { aiDetectedIssue: { $regex: /none/i } }
+      ]
+    });
+    if (result.deletedCount > 0) {
+      console.log(`[Database-Cleanup] Successfully purged ${result.deletedCount} legacy spam reports from MongoDB.`);
+    } else {
+      console.log('[Database-Cleanup] No legacy spam reports found in database.');
+    }
+  } catch (err) {
+    console.error('[Database-Cleanup] Error during legacy spam cleanup:', err.message);
+  }
+};
+
+// Run on startup (after 3 seconds delay)
+setTimeout(runLegacySpamCleanup, 3000);
+
 // Run on startup (after 5 seconds delay)
 setTimeout(runResolvedIssuesCleanup, 5000);
 
