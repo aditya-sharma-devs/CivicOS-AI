@@ -154,7 +154,7 @@ function App() {
     const initializeGoogleAuth = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "1027150192305-fallbackclientid.apps.googleusercontent.com",
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "1050818081119-vgq6c8lplcpoa772igmkdudff41c8s9b.apps.googleusercontent.com",
           callback: handleGoogleAuthCallback
         });
 
