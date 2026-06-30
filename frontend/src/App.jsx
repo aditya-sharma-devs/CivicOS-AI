@@ -1974,9 +1974,21 @@ function App() {
       )}
       {/* Site Footer */}
       <footer className="site-footer">
-        <div className="footer-content">
-          <p>© 2026 CivicOS AI. Empowering smart communities through AI-driven public infrastructure tracking.</p>
-          <span className="footer-author">Designed & Developed by Aditya Sharma</span>
+        <div className="footer-grid">
+          <div className="footer-col">
+            <h3>🏛️ CivicOS AI</h3>
+            <p>AI-powered hyper-local community solver where citizens report, track, and resolve public infrastructure hazards.</p>
+          </div>
+          <div className="footer-col">
+            <h3>⚙️ System Workflow</h3>
+            <p>Workflow Pipeline: Reported ➔ Verified by AI ➔ Dispatched ➔ Resolved</p>
+            <span className="footer-author-badge">Designed & Developed by Aditya Sharma</span>
+          </div>
+          <div className="footer-col">
+            <h3>🛠️ Core Technology Stack</h3>
+            <p>Built using React + Vite, Node.js & Express, Google Gemini 3.1 Flash-Lite API, and Firebase. Fully open-source under MIT.</p>
+            <span className="footer-copyright">© 2026 CivicOS AI. Open Source.</span>
+          </div>
         </div>
       </footer>
     </div>
