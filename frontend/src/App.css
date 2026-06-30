@@ -2443,8 +2443,39 @@ header {
 }
 
 .feature-card-icon {
-  font-size: 32px;
-  margin-bottom: 16px;
+  font-size: 22px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+body.light-theme .feature-card-icon {
+  background: rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.18);
+  color: var(--primary);
+}
+
+.feature-card:hover .feature-card-icon {
+  transform: scale(1.08) rotate(5deg);
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+body.light-theme .feature-card p {
+  color: #1e293b !important;
+  font-weight: 500;
+}
+
+body.light-theme .feature-card h3 {
+  color: #0f172a !important;
 }
 
 .feature-card h3 {

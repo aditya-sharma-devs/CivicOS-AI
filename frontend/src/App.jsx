@@ -144,12 +144,16 @@ function App() {
 
   // Page Navigation & Theme Switcher States
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(localStorage.getItem('activeTab') || 'home');
 
   useEffect(() => {
     document.body.className = theme === 'light' ? 'light-theme' : '';
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     if (currentView === 'landing') {
@@ -1704,7 +1708,7 @@ function App() {
                             📍 {issue.place}, {issue.district}, {issue.state}
                           </span>
                           <span className="footer-meta-item">
-                            🗺️{' '}
+                            📍{' '}
                             <a 
                               href={`https://www.google.com/maps?q=${issue.latitude},${issue.longitude}`} 
                               target="_blank" 
