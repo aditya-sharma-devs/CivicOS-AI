@@ -2528,7 +2528,7 @@ body.light-theme .feature-card h3 {
 }
 
 .header-nav-tab.active {
-  color: var(--primary);
+  color: var(--text);
   font-weight: 700;
 }
 
@@ -2539,7 +2539,7 @@ body.light-theme .feature-card h3 {
   left: 0;
   width: 100%;
   height: 3px;
-  background: var(--primary);
+  background: var(--text);
   border-radius: 99px;
   animation: tabUnderline 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -2999,5 +2999,9 @@ textarea[name="description"] {
     font-size: 11px !important;
     padding: 4px 8px !important;
     flex-shrink: 0 !important;
+  }
+
+  .leaderboard-reports-count {
+    display: none !important;
   }
 }

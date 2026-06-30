@@ -1899,7 +1899,7 @@ function App() {
                     </div>
                     
                     <div className="leaderboard-count-badge" style={{ fontSize: '13px', color: 'var(--primary)' }}>
-                      <strong>{entry.totalPoints || 0} pts</strong> ({entry.uniqueReportsCount} reports)
+                      <strong>{entry.totalPoints || 0} pts</strong> <span className="leaderboard-reports-count">({entry.uniqueReportsCount} reports)</span>
                     </div>
                   </div>
                 );
