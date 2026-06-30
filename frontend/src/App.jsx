@@ -378,30 +378,57 @@ function App() {
   // ----------------------------------------------------
   // Geolocation Handler
   // ----------------------------------------------------
-  const handleGetLocation = () => {
+  const handleGetLocation = async () => {
+    const { state, district, place } = formData;
+    
+    // If address details are specified, geocode them first (great for remote reporting!)
+    if (district && state) {
+      setIsGpsLoading(true);
+      showAlert('info', 'Querying geocoding registry for address coordinates...');
+      try {
+        const query = `${place ? place + ', ' : ''}${district}, ${state}, India`;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'CivicOS-AI-V2-App'
+          }
+        });
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+          setFormData(prev => ({
+            ...prev,
+            latitude: lat.toFixed(6),
+            longitude: lon.toFixed(6)
+          }));
+          showAlert('success', `Coordinates resolved from address database: ${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+          setIsGpsLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Geocoding error:', err);
+      }
+    }
+
+    // Fallback to local browser device sensor GPS
     if (!navigator.geolocation) {
       showAlert('danger', 'Geolocation is not supported by your browser.');
       return;
     }
     
     setIsGpsLoading(true);
-    showAlert('info', 'Acquiring GPS coordinates from device...');
+    showAlert('info', 'Acquiring GPS coordinates from device sensor...');
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const accuracy = position.coords.accuracy || 0;
-        if (accuracy > 500) {
-          showAlert('warning', `GPS accuracy is too low (${Math.round(accuracy)}m error range, limit is 500m). Please stand outdoors or input coordinates manually.`);
-          setIsGpsLoading(false);
-          return;
-        }
-
         setFormData(prev => ({
           ...prev,
           latitude: position.coords.latitude.toFixed(6),
           longitude: position.coords.longitude.toFixed(6)
         }));
-        showAlert('success', `GPS coordinates loaded successfully (accuracy range: ${Math.round(accuracy)}m).`);
+        showAlert('success', `GPS coordinates loaded from device sensor (accuracy range: ${Math.round(accuracy)}m).`);
         setIsGpsLoading(false);
       },
       (error) => {
