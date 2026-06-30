@@ -378,40 +378,22 @@ function App() {
   // ----------------------------------------------------
   // Geolocation Handler
   // ----------------------------------------------------
-  const handleGetLocation = async () => {
-    const { state, district, place } = formData;
-    
-    // If address details are specified, geocode them first (great for remote reporting!)
-    if (district && state) {
-      setIsGpsLoading(true);
-      showAlert('info', 'Querying geocoding registry for address coordinates...');
-      try {
-        const query = `${place ? place + ', ' : ''}${district}, ${state}, India`;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'CivicOS-AI-V2-App'
-          }
-        });
-        const data = await res.json();
-        if (data && data.length > 0) {
-          const lat = parseFloat(data[0].lat);
-          const lon = parseFloat(data[0].lon);
-          setFormData(prev => ({
-            ...prev,
-            latitude: lat.toFixed(6),
-            longitude: lon.toFixed(6)
-          }));
-          showAlert('success', `Coordinates resolved from address database: ${lat.toFixed(6)}, ${lon.toFixed(6)}`);
-          setIsGpsLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.error('Geocoding error:', err);
-      }
-    }
+  const getDistanceInMeters = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; // Earth radius in meters
+    const phi1 = lat1 * Math.PI/180;
+    const phi2 = lat2 * Math.PI/180;
+    const deltaPhi = (lat2-lat1) * Math.PI/180;
+    const deltaLambda = (lon2-lon1) * Math.PI/180;
 
-    // Fallback to local browser device sensor GPS
+    const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+              Math.cos(phi1) * Math.cos(phi2) *
+              Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c;
+  };
+
+  const handleGetLocation = () => {
     if (!navigator.geolocation) {
       showAlert('danger', 'Geolocation is not supported by your browser.');
       return;
@@ -421,15 +403,57 @@ function App() {
     showAlert('info', 'Acquiring GPS coordinates from device sensor...');
     
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const accuracy = position.coords.accuracy || 0;
-
+      async (position) => {
+        const deviceLat = position.coords.latitude;
+        const deviceLon = position.coords.longitude;
+        const { state, district, place } = formData;
+        
+        // If address details are specified, geocode and verify distance <= 1000m relative to device GPS
+        if (district && state) {
+          try {
+            const query = `${place ? place + ', ' : ''}${district}, ${state}, India`;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'CivicOS-AI-V2-App'
+              }
+            });
+            const data = await res.json();
+            if (data && data.length > 0) {
+              const geoLat = parseFloat(data[0].lat);
+              const geoLon = parseFloat(data[0].lon);
+              
+              const distance = getDistanceInMeters(deviceLat, deviceLon, geoLat, geoLon);
+              
+              if (distance > 1000) {
+                showAlert('danger', `Fetched location is too far from your current position (${Math.round(distance)}m away, limit is 1000m). Please check entered location details.`);
+                setIsGpsLoading(false);
+                return;
+              }
+              
+              setFormData(prev => ({
+                ...prev,
+                latitude: geoLat.toFixed(6),
+                longitude: geoLon.toFixed(6)
+              }));
+              showAlert('success', `Coordinates resolved from address database (distance: ${Math.round(distance)}m).`);
+              setIsGpsLoading(false);
+              return;
+            } else {
+              showAlert('warning', 'Could not resolve entered address location coordinates.');
+            }
+          } catch (err) {
+            console.error('Geocoding error:', err);
+          }
+        }
+        
+        // Fallback to device coordinates if no address entered
         setFormData(prev => ({
           ...prev,
-          latitude: position.coords.latitude.toFixed(6),
-          longitude: position.coords.longitude.toFixed(6)
+          latitude: deviceLat.toFixed(6),
+          longitude: deviceLon.toFixed(6)
         }));
-        showAlert('success', `GPS coordinates loaded from device sensor (accuracy range: ${Math.round(accuracy)}m).`);
+        showAlert('success', 'GPS coordinates loaded from device sensor.');
         setIsGpsLoading(false);
       },
       (error) => {
