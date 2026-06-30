@@ -1865,11 +1865,19 @@ select.select-admin-status option {
   font-size: 13px;
   font-weight: 700;
   color: white;
+  max-width: 110px; /* Constrain width to prevent text pushing */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .leaderboard-useremail {
   font-size: 11px;
   color: var(--text-muted);
+  max-width: 110px; /* Constrain width to prevent text pushing */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .leaderboard-count-badge {
@@ -1883,6 +1891,8 @@ select.select-admin-status option {
   display: flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .rank-1 .leaderboard-count-badge {
@@ -1896,4 +1906,255 @@ select.select-admin-status option {
   padding: 40px 20px;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+.leaderboard-item {
+  cursor: pointer; /* make rows clickable */
+}
+
+/* Citizen Details Overlay View */
+.citizen-details-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  animation: fadeIn 0.25s ease-out;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.back-to-leaderboard-btn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #818cf8;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  margin-bottom: 20px;
+  transition: color 0.2s ease;
+}
+
+.back-to-leaderboard-btn:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.citizen-details-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.citizen-details-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(99, 102, 241, 0.4);
+  margin-bottom: 10px;
+  object-fit: cover;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.citizen-details-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.citizen-details-email {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  word-break: break-all;
+  max-width: 100%;
+}
+
+.citizen-points-bubble {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #a5b4fc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.08);
+}
+
+.citizen-stats-section {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.citizen-stats-title {
+  font-size: 11px;
+  font-weight: 850;
+  color: #818cf8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 6px;
+}
+
+.citizen-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.citizen-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.severity-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.severity-count {
+  font-weight: 850;
+  font-size: 13px;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.severity-count.critical {
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.12);
+}
+.severity-count.high {
+  color: #fb923c;
+  background: rgba(251, 146, 60, 0.12);
+}
+.severity-count.medium {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+}
+.severity-count.low {
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+}
+
+/* Premium Header UI Redesign */
+header {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
+}
+
+.logo-section h1 {
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+  margin-bottom: 2px;
+}
+
+.api-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  background: rgba(244, 63, 94, 0.12);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  border-radius: 50px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.api-status-badge.connected {
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+/* User Profile Pill */
+.profile-badge-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 16px 6px 8px;
+  border-radius: 50px;
+  margin-left: 12px;
+  transition: all 0.2s ease;
+}
+
+.profile-badge-pill:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(99, 102, 241, 0.25);
+  transform: translateY(-1px);
+}
+
+.profile-badge-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.profile-badge-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.profile-badge-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: white;
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-badge-role {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }

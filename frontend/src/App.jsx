@@ -110,6 +110,7 @@ function App() {
   // Leaderboard States
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [selectedCitizen, setSelectedCitizen] = useState(null);
 
   // Admin Status Update State (temp holder for each card's selected status)
   const [tempStatus, setTempStatus] = useState({});
@@ -678,39 +679,42 @@ function App() {
             </div>
             <p>Hyperlocal Problem Solver | Verified Community Infrastructure Hub</p>
           </div>
-          <div className="nav-buttons">
+          <div className="nav-buttons" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {currentView === 'citizen' && (
               <>
                 <button 
                   className="btn btn-outline" 
-                  onClick={() => setShowLeaderboard(prev => !prev)} 
+                  onClick={() => { setShowLeaderboard(prev => !prev); setSelectedCitizen(null); }} 
                   style={{ 
                     border: showLeaderboard ? '1px solid var(--primary-hover)' : '', 
                     color: showLeaderboard ? 'var(--primary-hover)' : '',
-                    background: showLeaderboard ? 'rgba(99, 102, 241, 0.1)' : '',
-                    marginRight: '8px'
+                    background: showLeaderboard ? 'rgba(99, 102, 241, 0.1)' : ''
                   }}
                 >
                   🏆 Leaderboard
                 </button>
                 {adminToken ? (
                   <button className="btn btn-primary" onClick={() => { setCurrentView('admin'); fetchIssues(1); }}>
-                    🛡️ Admin Panel Dashboard
+                    🛡️ Admin Panel
                   </button>
                 ) : (
                   <button className="btn btn-secondary" onClick={() => setCurrentView('login')}>
-                    🔒 Admin Login Portal
+                    🔒 Admin Portal
                   </button>
                 )}
                 {userToken && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginLeft: '12px' }}>
-                    <span style={{ fontSize: '13px', color: '#94a3b8' }}>
-                      Citizen: <strong style={{ color: 'white' }}>{userName}</strong>
-                    </span>
-                    <button className="btn btn-danger" onClick={handleUserLogout} style={{ padding: '6px 12px' }}>
+                  <>
+                    <div className="profile-badge-pill">
+                      <div className="profile-badge-avatar">👤</div>
+                      <div className="profile-badge-info">
+                        <span className="profile-badge-name">{userName}</span>
+                        <span className="profile-badge-role">Citizen</span>
+                      </div>
+                    </div>
+                    <button className="btn btn-danger" onClick={handleUserLogout} style={{ padding: '8px 16px' }}>
                       Log Out
                     </button>
-                  </div>
+                  </>
                 )}
               </>
             )}
@@ -723,29 +727,31 @@ function App() {
               <>
                 <button 
                   className="btn btn-outline" 
-                  onClick={() => setShowLeaderboard(prev => !prev)} 
+                  onClick={() => { setShowLeaderboard(prev => !prev); setSelectedCitizen(null); }} 
                   style={{ 
                     border: showLeaderboard ? '1px solid var(--primary-hover)' : '', 
                     color: showLeaderboard ? 'var(--primary-hover)' : '',
-                    background: showLeaderboard ? 'rgba(99, 102, 241, 0.1)' : '',
-                    marginRight: '8px'
+                    background: showLeaderboard ? 'rgba(99, 102, 241, 0.1)' : ''
                   }}
                 >
                   🏆 Leaderboard
                 </button>
-                <span style={{ marginRight: '10px', fontSize: '14px', color: '#94a3b8' }}>
-                  👤 {adminUser} (Admin)
-                </span>
                 <button 
                   className={`btn ${currentView === 'admin' ? 'btn-primary' : 'btn-secondary'}`} 
                   onClick={() => fetchIssues(1)}
-                  style={{ marginRight: '8px' }}
                 >
-                  Admin Panel Feed
+                  Admin Feed
                 </button>
                 <button className="btn btn-secondary" onClick={() => { setCurrentView('citizen'); fetchIssues(1); }}>
-                  View Citizen Screen
+                  Citizen View
                 </button>
+                <div className="profile-badge-pill">
+                  <div className="profile-badge-avatar">🛡️</div>
+                  <div className="profile-badge-info">
+                    <span className="profile-badge-name">{adminUser}</span>
+                    <span className="profile-badge-role">Admin</span>
+                  </div>
+                </div>
                 <button className="btn btn-danger" onClick={handleAdminLogout}>
                   Log Out
                 </button>
@@ -1119,44 +1125,92 @@ function App() {
                 <div className="leaderboard-overlay-card" style={{ minHeight: currentView === 'admin' ? '500px' : 'auto' }}>
                   <div className="leaderboard-header">
                     <h3>🏆 Citizen Leaderboard</h3>
-                    <button className="leaderboard-close-btn" onClick={() => setShowLeaderboard(false)}>
+                    <button className="leaderboard-close-btn" onClick={() => { setShowLeaderboard(false); setSelectedCitizen(null); }}>
                       Close &times;
                     </button>
                   </div>
                   
-                  <div className="leaderboard-list">
-                    {leaderboardData.length === 0 ? (
-                      <div className="leaderboard-empty">
-                        No ranked citizens match the active filters.
+                  {selectedCitizen ? (
+                    <div className="citizen-details-container">
+                      <button className="back-to-leaderboard-btn" onClick={() => setSelectedCitizen(null)}>
+                        ← Back to Leaderboard
+                      </button>
+                      
+                      <div className="citizen-details-profile">
+                        <img 
+                          src={selectedCitizen.avatar || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                          alt={selectedCitizen.name}
+                          className="citizen-details-avatar"
+                        />
+                        <div className="citizen-details-name">{selectedCitizen.name}</div>
+                        <div className="citizen-details-email">{selectedCitizen.email}</div>
+                        
+                        <div className="citizen-points-bubble">
+                          🏆 <span>{selectedCitizen.totalPoints || 0} Points</span>
+                        </div>
                       </div>
-                    ) : (
-                      leaderboardData.map((entry, index) => {
-                        const rank = index + 1;
-                        return (
-                          <div key={entry._id} className={`leaderboard-item rank-${rank <= 3 ? rank : 'other'}`}>
-                            <div className="leaderboard-user-info">
-                              <div className="leaderboard-rank-badge">
-                                {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
-                              </div>
-                              <img 
-                                src={entry.avatar || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
-                                alt={entry.name}
-                                className="leaderboard-avatar"
-                              />
-                              <div className="leaderboard-details">
-                                <span className="leaderboard-username">{entry.name}</span>
-                                <span className="leaderboard-useremail">{entry.email}</span>
-                              </div>
-                            </div>
-                            
-                            <div className="leaderboard-count-badge">
-                              <span>{entry.totalPoints || 0} pts</span> ({entry.uniqueReportsCount} unique)
-                            </div>
+                      
+                      <div className="citizen-stats-section">
+                        <div className="citizen-stats-title">Severity breakdown</div>
+                        <div className="citizen-breakdown-list">
+                          <div className="citizen-breakdown-row">
+                            <span className="severity-label">🚨 Critical (50 pts)</span>
+                            <span className="severity-count critical">{selectedCitizen.criticalCount || 0}</span>
                           </div>
-                        );
-                      })
-                    )}
-                  </div>
+                          <div className="citizen-breakdown-row">
+                            <span className="severity-label">🟠 High (40 pts)</span>
+                            <span className="severity-count high">{selectedCitizen.highCount || 0}</span>
+                          </div>
+                          <div className="citizen-breakdown-row">
+                            <span className="severity-label">🟡 Medium (30 pts)</span>
+                            <span className="severity-count medium">{selectedCitizen.mediumCount || 0}</span>
+                          </div>
+                          <div className="citizen-breakdown-row">
+                            <span className="severity-label">🟢 Low (20 pts)</span>
+                            <span className="severity-count low">{selectedCitizen.lowCount || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="leaderboard-list">
+                      {leaderboardData.length === 0 ? (
+                        <div className="leaderboard-empty">
+                          No ranked citizens match the active filters.
+                        </div>
+                      ) : (
+                        leaderboardData.map((entry, index) => {
+                          const rank = index + 1;
+                          return (
+                            <div 
+                              key={entry._id} 
+                              className={`leaderboard-item rank-${rank <= 3 ? rank : 'other'}`}
+                              onClick={() => setSelectedCitizen(entry)}
+                            >
+                              <div className="leaderboard-user-info">
+                                <div className="leaderboard-rank-badge">
+                                  {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
+                                </div>
+                                <img 
+                                  src={entry.avatar || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                                  alt={entry.name}
+                                  className="leaderboard-avatar"
+                                />
+                                <div className="leaderboard-details">
+                                  <span className="leaderboard-username">{entry.name}</span>
+                                  <span className="leaderboard-useremail">{entry.email}</span>
+                                </div>
+                              </div>
+                              
+                              <div className="leaderboard-count-badge">
+                                <span>{entry.totalPoints || 0} pts</span> ({entry.uniqueReportsCount} unique)
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

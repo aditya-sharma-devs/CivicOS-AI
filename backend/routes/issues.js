@@ -240,6 +240,18 @@ router.get('/leaderboard', async (req, res) => {
                 default: 20
               }
             }
+          },
+          criticalCount: {
+            $sum: { $cond: [{ $eq: ['$severity', 'Critical'] }, 1, 0] }
+          },
+          highCount: {
+            $sum: { $cond: [{ $eq: ['$severity', 'High'] }, 1, 0] }
+          },
+          mediumCount: {
+            $sum: { $cond: [{ $eq: ['$severity', 'Medium'] }, 1, 0] }
+          },
+          lowCount: {
+            $sum: { $cond: [{ $eq: ['$severity', 'Low'] }, 1, 0] }
           }
         }
       },
@@ -258,6 +270,10 @@ router.get('/leaderboard', async (req, res) => {
           _id: 1,
           uniqueReportsCount: 1,
           totalPoints: 1,
+          criticalCount: 1,
+          highCount: 1,
+          mediumCount: 1,
+          lowCount: 1,
           name: '$userDetails.name',
           email: '$userDetails.email',
           avatar: '$userDetails.avatar'
