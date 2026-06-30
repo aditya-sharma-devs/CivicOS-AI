@@ -822,142 +822,145 @@ function App() {
         </div>
       )}
 
-      {/* Header Bar */}
-      <header>
-        <div className="logo-section" onClick={() => setActiveTab('home')} style={{ cursor: 'pointer' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-            <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>📢</span> CivicOS AI
-            </h1>
-            <span className={`api-status-badge ${isApiConnected ? 'connected' : ''}`}>
-              <span className="status-dot"></span>
-              {isApiConnected ? 'DB Connected' : 'DB Disconnected'}
-            </span>
+      <header className="main-header">
+        {/* Row 1: Logo & User Actions */}
+        <div className="header-top-row">
+          <div className="logo-section" onClick={() => setActiveTab('home')} style={{ cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+              <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <span>📢</span> CivicOS AI
+              </h1>
+              <span className={`api-status-badge ${isApiConnected ? 'connected' : ''}`}>
+                <span className="status-dot"></span>
+                {isApiConnected ? 'DB Connected' : 'DB Disconnected'}
+              </span>
+            </div>
+            <p className="logo-subtext" style={{ margin: '4px 0 0 0' }}>Hyperlocal Problem Solver | Verified Community Infrastructure Hub</p>
           </div>
-          <p>Hyperlocal Problem Solver | Verified Community Infrastructure Hub</p>
+
+          <div className="nav-buttons">
+            <button 
+              className="theme-toggle-btn"
+              onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              type="button"
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+
+            {userToken ? (
+              <>
+                <div className="profile-badge-pill" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>
+                  <div className="profile-badge-avatar">👤</div>
+                  <div className="profile-badge-info">
+                    <span className="profile-badge-name">{userName}</span>
+                    <span className="profile-badge-role">Citizen</span>
+                  </div>
+                </div>
+                <button 
+                  className="btn btn-outline" 
+                  onClick={() => setShowChangePasswordModal(true)}
+                  style={{ height: '38px', padding: '0 12px' }}
+                >
+                  🔑 Password
+                </button>
+                <button className="btn btn-danger" onClick={handleUserLogout} style={{ height: '38px', padding: '0 16px' }}>
+                  Log Out
+                </button>
+              </>
+            ) : adminToken ? (
+              <>
+                <div className="profile-badge-pill" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>
+                  <div className="profile-badge-avatar">🛡️</div>
+                  <div className="profile-badge-info">
+                    <span className="profile-badge-name">{adminUser}</span>
+                    <span className="profile-badge-role">Admin</span>
+                  </div>
+                </div>
+                <button 
+                  className="btn btn-outline" 
+                  onClick={() => setShowChangePasswordModal(true)}
+                  style={{ height: '38px', padding: '0 12px' }}
+                >
+                  🔑 Password
+                </button>
+                <button className="btn btn-danger" onClick={handleAdminLogout} style={{ height: '38px', padding: '0 16px' }}>
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setCurrentView('login');
+                  }}
+                  style={{ height: '38px' }}
+                >
+                  🛡️ Admin Sign In
+                </button>
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setCurrentView('user-login');
+                    setForgotPasswordStep(0);
+                  }}
+                  style={{ height: '38px' }}
+                >
+                  Sign In
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Central Navigation Tabs */}
-        <div className="header-nav-tabs">
-          <button 
-            className={`header-nav-tab ${activeTab === 'home' ? 'active' : ''}`}
-            onClick={() => setActiveTab('home')}
-          >
-            Home
-          </button>
-          <button 
-            className={`header-nav-tab ${activeTab === 'problems' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('problems');
-              if (userToken) {
-                setCurrentView('citizen');
-              } else if (adminToken) {
-                setCurrentView('admin');
-              } else {
-                // If not logged in, citizen dashboard works as public view
-                setCurrentView('citizen');
-              }
-            }}
-          >
-            Problems Feed
-          </button>
-          <button 
-            className={`header-nav-tab ${activeTab === 'leaderboard' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('leaderboard');
-              fetchLeaderboard();
-            }}
-          >
-            Leaderboard
-          </button>
-          {adminToken && (
+        {/* Row 2: Page Tabs Navigation */}
+        <div className="header-bottom-row">
+          <div className="header-nav-tabs">
             <button 
-              className={`header-nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
+              className={`header-nav-tab ${activeTab === 'home' ? 'active' : ''}`}
+              onClick={() => setActiveTab('home')}
+            >
+              Home
+            </button>
+            <button 
+              className={`header-nav-tab ${activeTab === 'problems' ? 'active' : ''}`}
               onClick={() => {
-                setActiveTab('admin');
-                setCurrentView('admin');
+                setActiveTab('problems');
+                if (userToken) {
+                  setCurrentView('citizen');
+                } else if (adminToken) {
+                  setCurrentView('admin');
+                } else {
+                  setCurrentView('citizen');
+                }
                 fetchIssues(1);
               }}
             >
-              🛡️ Admin Feed
+              Problems Feed
             </button>
-          )}
-        </div>
-
-        {/* Right Side Tools & Profiles */}
-        <div className="nav-buttons" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Theme Toggler */}
-          <button 
-            className="theme-toggle-btn"
-            onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            type="button"
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-
-          {/* User Section */}
-          {userToken ? (
-            <>
-              <div className="profile-badge-pill" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>
-                <div className="profile-badge-avatar">👤</div>
-                <div className="profile-badge-info">
-                  <span className="profile-badge-name">{userName}</span>
-                  <span className="profile-badge-role">Citizen</span>
-                </div>
-              </div>
+            <button 
+              className={`header-nav-tab ${activeTab === 'leaderboard' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('leaderboard');
+                fetchLeaderboard();
+              }}
+            >
+              Leaderboard
+            </button>
+            {adminToken && (
               <button 
-                className="btn btn-outline" 
-                onClick={() => setShowChangePasswordModal(true)}
-                style={{ padding: '8px 12px' }}
-              >
-                🔑 Password
-              </button>
-              <button className="btn btn-danger" onClick={handleUserLogout} style={{ padding: '8px 16px' }}>
-                Log Out
-              </button>
-            </>
-          ) : adminToken ? (
-            <>
-              <div className="profile-badge-pill" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>
-                <div className="profile-badge-avatar">🛡️</div>
-                <div className="profile-badge-info">
-                  <span className="profile-badge-name">{adminUser}</span>
-                  <span className="profile-badge-role">Admin</span>
-                </div>
-              </div>
-              <button 
-                className="btn btn-outline" 
-                onClick={() => setShowChangePasswordModal(true)}
-                style={{ padding: '8px 12px' }}
-              >
-                🔑 Password
-              </button>
-              <button className="btn btn-danger" onClick={handleAdminLogout}>
-                Log Out
-              </button>
-            </>
-          ) : (
-            <>
-              <button 
-                className="btn btn-secondary"
+                className={`header-nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
                 onClick={() => {
-                  setCurrentView('login');
+                  setActiveTab('admin');
+                  setCurrentView('admin');
+                  fetchIssues(1);
                 }}
               >
-                🛡️ Admin Sign In
+                🛡️ Admin Feed
               </button>
-              <button 
-                className="btn btn-primary"
-                onClick={() => {
-                  setCurrentView('user-login');
-                  setForgotPasswordStep(0);
-                }}
-              >
-                Sign In
-              </button>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
@@ -1006,7 +1009,6 @@ function App() {
       {/* Unique Premium Landing Page */}
       {activeTab === 'home' && !['user-login', 'user-signup', 'login'].includes(currentView) && (
         <div className="landing-hero-container">
-          <div className="landing-badge">🌿 Empowering Smart Communities</div>
           <h1 className="landing-hero-title">
             Empower. Report. <span>Resolve.</span>
           </h1>
@@ -1036,18 +1038,18 @@ function App() {
               <p>Instantly upload pothole or street light issues with geolocation markers and photos.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-card-icon">⚡ AI Details Extraction</div>
-              <h3>Gemini AI Verification</h3>
+              <div className="feature-card-icon">⚡</div>
+              <h3>AI Details Extraction</h3>
               <p>Submit simple descriptions and let our Gemini API parse categories, districts, and coordinates automatically.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-card-icon">🏆 Citizen Standings</div>
-              <h3>Leaderboard Points</h3>
+              <div className="feature-card-icon">🏆</div>
+              <h3>Citizen Standings</h3>
               <p>Earn leaderboard points for reporting hazards and helping verify infrastructure resolution.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-card-icon">🛡️ Verified Resolution</div>
-              <h3>Transparency</h3>
+              <div className="feature-card-icon">🛡️</div>
+              <h3>Verified Resolution</h3>
               <p>Authority dashboards review community fixes, keeping public status records completely transparent.</p>
             </div>
           </div>
