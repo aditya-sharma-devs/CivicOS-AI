@@ -423,6 +423,12 @@ function App() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const accuracy = position.coords.accuracy || 0;
+        if (accuracy > 500) {
+          showAlert('warning', `Device GPS returned inaccurate coordinates (${Math.round(accuracy)}m error range, limit is 500m). Please type coordinates manually.`);
+          setIsGpsLoading(false);
+          return;
+        }
+
         setFormData(prev => ({
           ...prev,
           latitude: position.coords.latitude.toFixed(6),
