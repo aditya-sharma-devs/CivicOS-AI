@@ -3004,4 +3004,8 @@ textarea[name="description"] {
   .leaderboard-reports-count {
     display: none !important;
   }
+
+  header::before {
+    display: none !important;
+  }
 }
