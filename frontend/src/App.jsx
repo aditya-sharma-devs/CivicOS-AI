@@ -100,7 +100,13 @@ function App() {
 
   // User Sign In & Sign Up Form Data
   const [userLoginData, setUserLoginData] = useState({ email: '', password: '' });
-  const [userRegisterData, setUserRegisterData] = useState({ name: '', email: '', password: '' });
+  const [userRegisterData, setUserRegisterData] = useState({ 
+    name: '', 
+    email: '', 
+    password: '',
+    securityQuestion: '',
+    securityAnswer: ''
+  });
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -111,6 +117,22 @@ function App() {
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [selectedCitizen, setSelectedCitizen] = useState(null);
+
+  // Change Password Modal States
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [changePasswordData, setChangePasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  // Forgot Password / Recovery States
+  const [forgotPasswordStep, setForgotPasswordStep] = useState(0); // 0 = off, 1 = enter email, 2 = verify question & reset
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [recoveryQuestion, setRecoveryQuestion] = useState('');
+  const [recoveryAnswer, setRecoveryAnswer] = useState('');
+  const [recoveryNewPassword, setRecoveryNewPassword] = useState('');
+  const [recoveryConfirmPassword, setRecoveryConfirmPassword] = useState('');
 
   // Admin Status Update State (temp holder for each card's selected status)
   const [tempStatus, setTempStatus] = useState({});
@@ -513,8 +535,8 @@ function App() {
 
   const handleUserRegister = async (e) => {
     e.preventDefault();
-    if (!userRegisterData.name || !userRegisterData.email || !userRegisterData.password) {
-      showAlert('danger', 'Please enter all fields.');
+    if (!userRegisterData.name || !userRegisterData.email || !userRegisterData.password || !userRegisterData.securityQuestion || !userRegisterData.securityAnswer) {
+      showAlert('danger', 'Please enter all fields, including security question and answer.');
       return;
     }
     setLoading(true);
@@ -534,9 +556,127 @@ function App() {
         setUserEmail(data.user.email);
         setCurrentView('citizen');
         showAlert('success', `Account created successfully! Welcome, ${data.user.name}.`);
-        setUserRegisterData({ name: '', email: '', password: '' });
+        setUserRegisterData({ name: '', email: '', password: '', securityQuestion: '', securityAnswer: '' });
       } else {
         showAlert('danger', data.message || 'Registration failed.');
+      }
+    } catch (err) {
+      showAlert('danger', 'Failed to connect to authentication server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangePasswordSubmit = async (e) => {
+    e.preventDefault();
+    const { currentPassword, newPassword, confirmPassword } = changePasswordData;
+
+    if (newPassword !== confirmPassword) {
+      showAlert('danger', 'New passwords do not match!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      let endpoint = '';
+
+      if (currentView === 'admin') {
+        headers['Authorization'] = `Bearer ${adminToken}`;
+        endpoint = `${API_BASE_URL}/auth/admin/change-password`;
+      } else {
+        headers['Authorization'] = `Bearer ${userToken}`;
+        endpoint = `${API_BASE_URL}/auth/user/change-password`;
+      }
+
+      const res = await fetch(endpoint, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        showAlert('success', data.message || 'Password changed successfully!');
+        setShowChangePasswordModal(false);
+        setChangePasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        showAlert('danger', data.message || 'Failed to update password.');
+      }
+    } catch (err) {
+      showAlert('danger', 'Failed to connect to server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPasswordRequest = async (e) => {
+    e.preventDefault();
+    if (!recoveryEmail) {
+      showAlert('danger', 'Please enter your email address.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/user/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: recoveryEmail })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setRecoveryQuestion(data.securityQuestion);
+        setForgotPasswordStep(2);
+        showAlert('info', 'Verify security question to reset password.');
+      } else {
+        showAlert('danger', data.message || 'Verification failed.');
+      }
+    } catch (err) {
+      showAlert('danger', 'Failed to connect to authentication server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!recoveryAnswer || !recoveryNewPassword || !recoveryConfirmPassword) {
+      showAlert('danger', 'Please enter all fields.');
+      return;
+    }
+
+    if (recoveryNewPassword !== recoveryConfirmPassword) {
+      showAlert('danger', 'Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/user/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: recoveryEmail,
+          securityAnswer: recoveryAnswer,
+          newPassword: recoveryNewPassword
+        })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        showAlert('success', data.message || 'Password reset successfully! Please sign in.');
+        // Reset states
+        setForgotPasswordStep(0);
+        setRecoveryEmail('');
+        setRecoveryQuestion('');
+        setRecoveryAnswer('');
+        setRecoveryNewPassword('');
+        setRecoveryConfirmPassword('');
+        setCurrentView('user-login');
+      } else {
+        showAlert('danger', data.message || 'Failed to reset password.');
       }
     } catch (err) {
       showAlert('danger', 'Failed to connect to authentication server.');
@@ -711,6 +851,13 @@ function App() {
                         <span className="profile-badge-role">Citizen</span>
                       </div>
                     </div>
+                    <button 
+                      className="btn btn-outline" 
+                      onClick={() => setShowChangePasswordModal(true)}
+                      style={{ padding: '8px 12px' }}
+                    >
+                      🔑 Password
+                    </button>
                     <button className="btn btn-danger" onClick={handleUserLogout} style={{ padding: '8px 16px' }}>
                       Log Out
                     </button>
@@ -752,6 +899,13 @@ function App() {
                     <span className="profile-badge-role">Admin</span>
                   </div>
                 </div>
+                <button 
+                  className="btn btn-outline" 
+                  onClick={() => setShowChangePasswordModal(true)}
+                  style={{ padding: '8px 12px' }}
+                >
+                  🔑 Password
+                </button>
                 <button className="btn btn-danger" onClick={handleAdminLogout}>
                   Log Out
                 </button>
@@ -830,7 +984,7 @@ function App() {
         </div>
       )}
 
-      {currentView === 'user-login' && (
+      {currentView === 'user-login' && forgotPasswordStep === 0 && (
         <div className="login-card">
           <h2>Citizen Sign In</h2>
           <form onSubmit={handleUserLogin}>
@@ -855,6 +1009,9 @@ function App() {
                 onChange={handleUserLoginChange}
                 required
               />
+              <a className="forgot-password-link" onClick={() => setForgotPasswordStep(1)}>
+                Forgot Password?
+              </a>
             </div>
             <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
               {loading ? 'Authenticating...' : 'Sign In'}
@@ -874,6 +1031,90 @@ function App() {
           </a>
           <a className="auth-nav-link" onClick={() => setCurrentView('landing')} style={{ marginTop: '8px', fontSize: '11px' }}>
             ← Back to Portal Selection
+          </a>
+        </div>
+      )}
+
+      {currentView === 'user-login' && forgotPasswordStep === 1 && (
+        <div className="login-card">
+          <h2>Recover Account</h2>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.4' }}>
+            Enter your email address to retrieve your security recovery question.
+          </p>
+          <form onSubmit={handleForgotPasswordRequest}>
+            <div className="form-group">
+              <label>Email Address</label>
+              <input 
+                type="email" 
+                className="form-control"
+                placeholder="Enter your email"
+                value={recoveryEmail}
+                onChange={e => setRecoveryEmail(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '15px' }} disabled={loading}>
+              {loading ? 'Verifying...' : 'Next'}
+            </button>
+          </form>
+          <a className="auth-nav-link" onClick={() => { setForgotPasswordStep(0); }} style={{ marginTop: '15px' }}>
+            ← Back to Sign In
+          </a>
+        </div>
+      )}
+
+      {currentView === 'user-login' && forgotPasswordStep === 2 && (
+        <div className="login-card">
+          <h2>Security Verification</h2>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '15px', lineHeight: '1.4' }}>
+            Answer your security question below to set a new password.
+          </p>
+          <form onSubmit={handleResetPasswordSubmit}>
+            <div className="form-group" style={{ marginBottom: '15px' }}>
+              <label style={{ color: 'white', fontWeight: 'bold' }}>Question:</label>
+              <p style={{ margin: '6px 0', fontSize: '14px', color: '#a5b4fc', fontStyle: 'italic', fontWeight: 'bold' }}>
+                {recoveryQuestion}
+              </p>
+            </div>
+            <div className="form-group">
+              <label>Your Answer</label>
+              <input 
+                type="text" 
+                className="form-control"
+                placeholder="Enter answer"
+                value={recoveryAnswer}
+                onChange={e => setRecoveryAnswer(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>New Password</label>
+              <input 
+                type="password" 
+                className="form-control"
+                placeholder="Min 6 characters"
+                value={recoveryNewPassword}
+                onChange={e => setRecoveryNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Confirm New Password</label>
+              <input 
+                type="password" 
+                className="form-control"
+                placeholder="Confirm password"
+                value={recoveryConfirmPassword}
+                onChange={e => setRecoveryConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '15px' }} disabled={loading}>
+              {loading ? 'Resetting Password...' : 'Reset Password'}
+            </button>
+          </form>
+          <a className="auth-nav-link" onClick={() => { setForgotPasswordStep(1); setRecoveryAnswer(''); setRecoveryNewPassword(''); setRecoveryConfirmPassword(''); }} style={{ marginTop: '15px' }}>
+            ← Back
           </a>
         </div>
       )}
@@ -915,6 +1156,37 @@ function App() {
                 required
               />
             </div>
+
+            <div className="form-group">
+              <label>Security Recovery Question</label>
+              <select
+                name="securityQuestion"
+                className="form-control"
+                value={userRegisterData.securityQuestion}
+                onChange={handleUserRegisterChange}
+                required
+              >
+                <option value="">Select a recovery question...</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                <option value="What city were you born in?">What city were you born in?</option>
+                <option value="What was the name of your primary school?">What was the name of your primary school?</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Security Recovery Answer</label>
+              <input 
+                type="text" 
+                name="securityAnswer" 
+                placeholder="Case-insensitive answer"
+                className="form-control"
+                value={userRegisterData.securityAnswer}
+                onChange={handleUserRegisterChange}
+                required
+              />
+            </div>
+
             <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
               {loading ? 'Registering...' : 'Sign Up'}
             </button>
@@ -1518,6 +1790,81 @@ function App() {
         )}
       </>
     )}
+
+    {showChangePasswordModal && (
+        <div className="settings-modal-overlay">
+          <div className="settings-modal-card">
+            <h2>🔑 Change Password</h2>
+            <p>Enter your current password and a new secure password of at least 6 characters.</p>
+            
+            <form onSubmit={handleChangePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {/* Only require current password for non-oauth profiles */}
+              {currentView === 'admin' || userEmail ? (
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label>Current Password</label>
+                  <input 
+                    type="password" 
+                    className="form-control"
+                    placeholder="Enter current password"
+                    value={changePasswordData.currentPassword}
+                    onChange={e => setChangePasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    style={{ background: 'rgba(255,255,255,0.03)', color: 'white' }}
+                  />
+                  {currentView === 'citizen' && (
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                      * Leave blank if you sign in exclusively via Google.
+                    </span>
+                  )}
+                </div>
+              ) : null}
+              
+              <div className="form-group" style={{ margin: 0 }}>
+                <label>New Password</label>
+                <input 
+                  type="password" 
+                  className="form-control"
+                  placeholder="Min 6 characters"
+                  value={changePasswordData.newPassword}
+                  onChange={e => setChangePasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                  required
+                  style={{ background: 'rgba(255,255,255,0.03)', color: 'white' }}
+                />
+              </div>
+
+              <div className="form-group" style={{ margin: 0 }}>
+                <label>Confirm New Password</label>
+                <input 
+                  type="password" 
+                  className="form-control"
+                  placeholder="Confirm new password"
+                  value={changePasswordData.confirmPassword}
+                  onChange={e => setChangePasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  required
+                  style={{ background: 'rgba(255,255,255,0.03)', color: 'white' }}
+                />
+              </div>
+
+              <div className="modal-action-buttons">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => { setShowChangePasswordModal(false); setChangePasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' }); }}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  disabled={loading}
+                >
+                  {loading ? 'Saving...' : 'Update Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

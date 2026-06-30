@@ -22,6 +22,12 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String
+  },
+  securityQuestion: {
+    type: String
+  },
+  securityAnswer: {
+    type: String
   }
 }, { timestamps: true });
 
