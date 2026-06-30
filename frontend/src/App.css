@@ -2904,3 +2904,39 @@ textarea[name="description"] {
   scrollbar-width: none !important; /* Firefox fallback */
   -ms-overflow-style: none !important; /* IE/Edge fallback */
 }
+
+/* Final Mobile Friendly & Responsive UI Touches */
+@media (max-width: 480px) {
+  .settings-modal-card {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 10px !important;
+    padding: 24px 16px !important;
+    border-radius: 12px !important;
+  }
+  
+  .citizen-stats-section {
+    padding: 0 2px;
+  }
+  
+  .citizen-breakdown-row {
+    font-size: 12px !important;
+  }
+
+  .site-footer {
+    padding: 32px 16px 24px 16px !important;
+    margin-top: 60px !important;
+  }
+
+  .footer-grid {
+    gap: 28px !important;
+  }
+
+  .app-container {
+    padding: 12px 8px !important;
+  }
+
+  .main-grid {
+    gap: 16px !important;
+  }
+}
