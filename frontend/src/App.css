@@ -2512,32 +2512,41 @@ body.light-theme .feature-card h3 {
 
 .header-nav-tab {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  padding: 6px 16px;
+  padding: 8px 4px;
   position: relative;
-  transition: all 0.25s ease;
+  transition: color 0.2s ease;
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 99px;
-  font-family: inherit;
+  border: none;
+  font-family: var(--font-body);
 }
 
 .header-nav-tab:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-body.light-theme .header-nav-tab:hover {
-  background: rgba(15, 23, 42, 0.04);
 }
 
 .header-nav-tab.active {
-  color: var(--primary) !important;
-  background: var(--primary-light) !important;
-  border: 1px solid rgba(99, 102, 241, 0.15) !important;
+  color: var(--primary);
   font-weight: 700;
+}
+
+.header-nav-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 99px;
+  animation: tabUnderline 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes tabUnderline {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 /* Theme Toggle Button */
@@ -2936,88 +2945,59 @@ textarea[name="description"] {
     white-space: nowrap !important;
   }
 
-  .header-nav-tabs {
-    gap: 8px !important;
-    padding: 2px 4px !important;
-    width: 100% !important;
-    justify-content: space-around !important;
-  }
-
-  /* Leaderboard Point Badge Overflow Fixes */
-  .leaderboard-item {
-    padding: 10px !important;
-    gap: 8px !important;
-  }
-  
-  .leaderboard-useremail {
-    display: none !important; /* Hide long emails on small viewports to avoid push offsets */
-  }
-  
-  .leaderboard-count-badge {
-    font-size: 11px !important;
-    padding: 4px 8px !important;
-    flex-shrink: 0 !important;
-  }
-
-  /* 2x2 Header Row grid for collapsed mobile controls */
+  /* Align upper header profile links without changing their UI structure */
   .nav-buttons {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
     gap: 8px !important;
     width: 100% !important;
     margin-top: 10px !important;
   }
 
   .profile-badge-pill {
-    grid-column: 1 / 2 !important;
-    grid-row: 1 !important;
-    width: 100% !important;
     margin: 0 !important;
-    height: 38px !important;
-    background: rgba(255, 255, 255, 0.04) !important;
-    border-radius: 8px !important;
-    box-sizing: border-box !important;
-    justify-content: flex-start !important;
-  }
-
-  body.light-theme .profile-badge-pill {
-    background: rgba(15, 23, 42, 0.04) !important;
   }
 
   .theme-toggle-btn {
-    grid-column: 2 / 3 !important;
-    grid-row: 1 !important;
-    width: 100% !important;
-    height: 38px !important;
     margin: 0 !important;
-    border-radius: 8px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-sizing: border-box !important;
-    background: var(--primary-light) !important;
   }
 
   .nav-buttons .btn {
-    grid-row: 2 !important;
-    height: 38px !important;
-    font-size: 13px !important;
     margin: 0 !important;
-    display: flex !important;
+  }
+
+  /* Leaderboard Point Badge Overflow Fixes without changing list item design */
+  .leaderboard-item {
+    justify-content: space-between !important;
     align-items: center !important;
-    justify-content: center !important;
-    box-sizing: border-box !important;
+    gap: 12px !important;
+    padding: 10px !important;
+  }
+  
+  .leaderboard-details {
+    max-width: 55% !important;
+    overflow: hidden !important;
   }
 
-  .nav-buttons .btn.btn-outline,
-  .nav-buttons button:nth-of-type(2),
-  .nav-buttons .btn:nth-child(2) {
-    grid-column: 1 / 2 !important;
+  .leaderboard-username {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
   }
 
-  .nav-buttons .btn.btn-danger,
-  .nav-buttons button:nth-of-type(3),
-  .nav-buttons .btn:nth-child(3) {
-    grid-column: 2 / 3 !important;
+  .leaderboard-useremail {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+  }
+  
+  .leaderboard-count-badge {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+    flex-shrink: 0 !important;
   }
 }
