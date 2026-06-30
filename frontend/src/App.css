@@ -2277,13 +2277,14 @@ header {
 }
 
 .settings-modal-card {
-  background: #0d121f;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text) !important;
   border-radius: var(--radius-lg);
   padding: 30px;
   width: 100%;
   max-width: 440px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -2294,13 +2295,13 @@ header {
 .settings-modal-card h2 {
   font-size: 22px;
   font-weight: 800;
-  color: white;
+  color: var(--text) !important;
   margin: 0;
 }
 
 .settings-modal-card p {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
   margin: 0;
   line-height: 1.5;
 }
@@ -2738,4 +2739,44 @@ body.light-theme .form-control:focus {
 .form-control.input-error {
   border-color: var(--status-rejected) !important;
   box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.15) !important;
+}
+
+/* Light theme overrides for custom file uploaders and geo-detect buttons */
+body.light-theme .file-upload-wrapper {
+  background-color: rgba(15, 23, 42, 0.02) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+body.light-theme .file-upload-wrapper:hover {
+  background-color: rgba(79, 70, 229, 0.05) !important;
+  border-color: var(--primary) !important;
+}
+
+body.light-theme .btn-geo {
+  background-color: rgba(15, 23, 42, 0.02) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #334155 !important;
+}
+
+body.light-theme .btn-geo:hover {
+  background-color: rgba(79, 70, 229, 0.05) !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+/* Enhancing dark-mode issue form background and cards contrast */
+.reporting-form-card {
+  border: 1px solid var(--glass-border) !important;
+  background: var(--bg-card) !important;
+}
+
+.reporting-form-card h2 {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 24px;
+  background: var(--logo-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 14px;
 }

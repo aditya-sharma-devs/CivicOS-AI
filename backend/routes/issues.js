@@ -113,15 +113,18 @@ async function verifyLocation(district, state) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
     const prompt = `
-      You are a geographic verification AI. 
-      Is the city, district, town, or area named "${district}" located inside the state or union territory named "${state}" in India?
-      Note: Chandigarh is a union territory bordering Punjab and Haryana, not inside Himachal Pradesh.
-      
-      Respond ONLY with a JSON object. Do not include markdown formatting or code blocks:
+      You are an expert Indian geography verification system.
+      Your task is to verify if the city, town, village, or district named "${district}" is administratively, geographically, and politically located inside the State or Union Territory of "${state}" in India.
+
+      Rules:
+      1. Be extremely strict. For example, if "${district}" is Gurdaspur/Dinanagar (which is in Punjab), but "${state}" is entered as Madhya Pradesh, "isValid" MUST be false.
+      2. If you are uncertain, or if the district/city does not exist in "${state}", set "isValid" to false.
+      3. Return a clean JSON object exactly matching the schema below:
       {
         "isValid": true | false,
-        "reason": "If isValid is false, specify a brief explanation (e.g. Chandigarh is a union territory bordering Punjab/Haryana and is not part of Himachal Pradesh.), otherwise empty string."
+        "reason": "If isValid is false, specify a clear explanation of which state the district actually belongs to (e.g., 'Dinanagar and Gurdaspur are located in Punjab, not Madhya Pradesh. Please correct your state selection.'), otherwise return an empty string."
       }
+      Do not include any code block formatting like \`\`\`json. Return ONLY the raw JSON string.
     `;
     const result = await model.generateContent(prompt);
     let cleanJson = result.response.text().trim();
