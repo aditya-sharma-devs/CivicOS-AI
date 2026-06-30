@@ -2268,14 +2268,18 @@ header {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(10, 15, 30, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(5, 7, 18, 0.82) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 0.25s ease-out;
+}
+
+body.light-theme .settings-modal-overlay {
+  background: rgba(241, 245, 249, 0.85) !important;
 }
 
 .settings-modal-card {

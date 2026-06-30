@@ -1847,53 +1847,6 @@ function App() {
               })
             )}
           </div>
-
-          {/* Profile Detail Popover Modal */}
-          {selectedCitizen && (
-            <div className="settings-modal-overlay" onClick={() => setSelectedCitizen(null)}>
-              <div className="settings-modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
-                <button 
-                  className="leaderboard-close-btn" 
-                  onClick={() => setSelectedCitizen(null)}
-                  style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}
-                >
-                  &times;
-                </button>
-                
-                <div className="citizen-details-profile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
-                  <div className="citizen-details-avatar-placeholder">👤</div>
-                  <div className="citizen-details-name" style={{ fontSize: '20px', fontWeight: '800', margin: '10px 0 4px 0', color: 'var(--text)' }}>{selectedCitizen.name}</div>
-                  <div className="citizen-details-email" style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{selectedCitizen.email}</div>
-                  
-                  <div className="citizen-points-bubble" style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '6px 14px', borderRadius: '99px', fontSize: '14px', fontWeight: '700' }}>
-                    🏆 <span>{selectedCitizen.totalPoints || 0} Points</span>
-                  </div>
-                </div>
-                
-                <div className="citizen-stats-section" style={{ width: '100%' }}>
-                  <div className="citizen-stats-title" style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.5px' }}>Severity breakdown</div>
-                  <div className="citizen-breakdown-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                      <span className="severity-label">🚨 Critical (50 pts)</span>
-                      <span className="severity-count critical" style={{ fontWeight: '700', color: 'var(--severity-critical)' }}>{selectedCitizen.criticalCount || 0}</span>
-                    </div>
-                    <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                      <span className="severity-label">🟠 High (40 pts)</span>
-                      <span className="severity-count high" style={{ fontWeight: '700', color: 'var(--severity-high)' }}>{selectedCitizen.highCount || 0}</span>
-                    </div>
-                    <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                      <span className="severity-label">🟡 Medium (30 pts)</span>
-                      <span className="severity-count medium" style={{ fontWeight: '700', color: 'var(--severity-medium)' }}>{selectedCitizen.mediumCount || 0}</span>
-                    </div>
-                    <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                      <span className="severity-label">🟢 Low (20 pts)</span>
-                      <span className="severity-count low" style={{ fontWeight: '700', color: 'var(--severity-low)' }}>{selectedCitizen.lowCount || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     )}
@@ -1972,6 +1925,62 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Profile Detail Popover Modal */}
+      {selectedCitizen && (
+        <div className="settings-modal-overlay" onClick={() => setSelectedCitizen(null)}>
+          <div className="settings-modal-card citizen-detail-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+            <button 
+              className="leaderboard-close-btn" 
+              onClick={() => setSelectedCitizen(null)}
+              style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}
+            >
+              &times;
+            </button>
+            
+            <div className="citizen-details-profile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
+              <div className="citizen-details-avatar-placeholder">👤</div>
+              <div className="citizen-details-name" style={{ fontSize: '20px', fontWeight: '800', margin: '10px 0 4px 0', color: 'var(--text)' }}>{selectedCitizen.name}</div>
+              <div className="citizen-details-email" style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{selectedCitizen.email}</div>
+              
+              <div className="citizen-points-bubble" style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '6px 14px', borderRadius: '99px', fontSize: '14px', fontWeight: '700' }}>
+                🏆 <span>{selectedCitizen.totalPoints || 0} Points</span>
+              </div>
+            </div>
+            
+            <div className="citizen-stats-section" style={{ width: '100%' }}>
+              <div className="citizen-stats-title" style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.5px' }}>Severity breakdown</div>
+              <div className="citizen-breakdown-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div className="citizen-breakdown-row" style={{ display: 'flex', justifycontent: 'space-between', fontSize: '13px' }}>
+                  <span className="severity-label" style={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+                    <span>🚨 Critical (50 pts)</span>
+                    <span className="severity-count critical" style={{ fontWeight: '700', color: 'var(--severity-critical)' }}>{selectedCitizen.criticalCount || 0}</span>
+                  </span>
+                </div>
+                <div className="citizen-breakdown-row" style={{ display: 'flex', justifycontent: 'space-between', fontSize: '13px' }}>
+                  <span className="severity-label" style={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+                    <span>🟠 High (40 pts)</span>
+                    <span className="severity-count high" style={{ fontWeight: '700', color: 'var(--severity-high)' }}>{selectedCitizen.highCount || 0}</span>
+                  </span>
+                </div>
+                <div className="citizen-breakdown-row" style={{ display: 'flex', justifycontent: 'space-between', fontSize: '13px' }}>
+                  <span className="severity-label" style={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+                    <span>🟡 Medium (30 pts)</span>
+                    <span className="severity-count medium" style={{ fontWeight: '700', color: 'var(--severity-medium)' }}>{selectedCitizen.mediumCount || 0}</span>
+                  </span>
+                </div>
+                <div className="citizen-breakdown-row" style={{ display: 'flex', justifycontent: 'space-between', fontSize: '13px' }}>
+                  <span className="severity-label" style={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+                    <span>🟢 Low (20 pts)</span>
+                    <span className="severity-count low" style={{ fontWeight: '700', color: 'var(--severity-low)' }}>{selectedCitizen.lowCount || 0}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Site Footer */}
       <footer className="site-footer">
         <div className="footer-grid">
