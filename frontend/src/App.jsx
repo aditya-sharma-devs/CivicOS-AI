@@ -118,6 +118,11 @@ function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [selectedCitizen, setSelectedCitizen] = useState(null);
 
+  // Google first-time name signup states
+  const [showGoogleNameModal, setShowGoogleNameModal] = useState(false);
+  const [tempUserData, setTempUserData] = useState(null);
+  const [newGoogleName, setNewGoogleName] = useState('');
+
   // Change Password Modal States
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [changePasswordData, setChangePasswordData] = useState({
@@ -174,19 +179,70 @@ function App() {
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem('userToken', data.token);
-        localStorage.setItem('userEmail', data.user.email);
-        localStorage.setItem('userName', data.user.name);
-        setUserToken(data.token);
-        setUserEmail(data.user.email);
-        setUserName(data.user.name);
-        setCurrentView('citizen');
-        showAlert('success', `Signed in via Google successfully! Welcome, ${data.user.name}.`);
+        if (data.isNewUser) {
+          setTempUserData({
+            token: data.token,
+            email: data.user.email,
+            avatar: data.user.avatar,
+            name: data.user.name || ''
+          });
+          setNewGoogleName(data.user.name || '');
+          setShowGoogleNameModal(true);
+          showAlert('info', 'First sign-in detected. Please configure your leaderboard display name.');
+        } else {
+          localStorage.setItem('userToken', data.token);
+          localStorage.setItem('userEmail', data.user.email);
+          localStorage.setItem('userName', data.user.name);
+          setUserToken(data.token);
+          setUserEmail(data.user.email);
+          setUserName(data.user.name);
+          setCurrentView('citizen');
+          showAlert('success', `Signed in via Google successfully! Welcome back, ${data.user.name}.`);
+        }
       } else {
         showAlert('danger', data.message || 'Google authentication failed.');
       }
     } catch (err) {
       showAlert('danger', 'Failed to connect to authentication server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveGoogleName = async (e) => {
+    e.preventDefault();
+    if (!newGoogleName.trim()) {
+      showAlert('danger', 'Please enter a valid display name.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/user/update-name`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tempUserData.token}`
+        },
+        body: JSON.stringify({ name: newGoogleName })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('userToken', tempUserData.token);
+        localStorage.setItem('userEmail', tempUserData.email);
+        localStorage.setItem('userName', data.name);
+        setUserToken(tempUserData.token);
+        setUserEmail(tempUserData.email);
+        setUserName(data.name);
+        setShowGoogleNameModal(false);
+        setTempUserData(null);
+        setCurrentView('citizen');
+        showAlert('success', `Welcome to CivicOS AI, ${data.name}! Profile name registered successfully.`);
+      } else {
+        showAlert('danger', data.message || 'Failed to register profile name.');
+      }
+    } catch (err) {
+      showAlert('danger', 'Error updating display name.');
     } finally {
       setLoading(false);
     }
@@ -1978,6 +2034,42 @@ function App() {
                   disabled={loading}
                 >
                   {loading ? 'Saving...' : 'Update Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showGoogleNameModal && (
+        <div className="settings-modal-overlay">
+          <div className="settings-modal-card" style={{ maxWidth: '440px' }}>
+            <h2>👤 Complete Google Registration</h2>
+            <p>Welcome! Please enter your name to display on the leaderboard and issues you report.</p>
+            
+            <form onSubmit={handleSaveGoogleName} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label>Display Name</label>
+                <input 
+                  type="text" 
+                  className="form-control"
+                  placeholder="Enter your name"
+                  value={newGoogleName}
+                  onChange={e => setNewGoogleName(e.target.value)}
+                  required
+                  maxLength={50}
+                  style={{ background: 'rgba(255,255,255,0.03)', color: 'white' }}
+                />
+              </div>
+
+              <div className="modal-action-buttons" style={{ marginTop: '10px' }}>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  style={{ width: '100%' }}
+                  disabled={loading}
+                >
+                  {loading ? 'Registering...' : 'Register Display Name'}
                 </button>
               </div>
             </form>

@@ -233,8 +233,10 @@ router.post('/user/google', async (req, res) => {
       return res.status(400).json({ message: 'Google account lacks email verification' });
     }
 
+    let isNewUser = false;
     let user = await User.findOne({ email });
     if (!user) {
+      isNewUser = true;
       // Auto-register new social user
       user = new User({
         name,
@@ -250,6 +252,10 @@ router.post('/user/google', async (req, res) => {
       await user.save();
     }
 
+    if (!user.name || user.name.trim() === '') {
+      isNewUser = true;
+    }
+
     const token = jwt.sign(
       { id: user._id, name: user.name, email: user.email, role: 'citizen' },
       process.env.JWT_SECRET || 'supersecurecivicosjwtsecretkey99887766',
@@ -258,6 +264,7 @@ router.post('/user/google', async (req, res) => {
 
     res.json({
       token,
+      isNewUser,
       user: {
         id: user._id,
         name: user.name,
@@ -415,6 +422,30 @@ router.post('/user/reset-password', async (req, res) => {
     res.json({ message: 'Password has been reset successfully! You can now log in.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   PUT /api/auth/user/update-name
+// @desc    Update user name (specifically for Google signup first-time name entry)
+// @access  Private (User Token required)
+router.put('/user/update-name', userAuth, async (req, res) => {
+  const { name } = req.body;
+  if (!name || name.trim() === '') {
+    return res.status(400).json({ message: 'Name is required' });
+  }
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.name = name.trim();
+    await user.save();
+
+    res.json({ message: 'Name updated successfully', name: user.name });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error updating name', error: error.message });
   }
 });
 
