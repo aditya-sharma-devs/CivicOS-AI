@@ -2337,7 +2337,7 @@ header {
 .landing-hero-container {
   text-align: center;
   padding: 80px 20px 100px 20px;
-  max-width: 900px;
+  max-width: 1240px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -2732,4 +2732,10 @@ body.light-theme .form-control {
 body.light-theme .form-control:focus {
   border-color: #4f46e5 !important;
   box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15) !important;
+}
+
+/* Location Validation Error Highlight */
+.form-control.input-error {
+  border-color: var(--status-rejected) !important;
+  box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.15) !important;
 }

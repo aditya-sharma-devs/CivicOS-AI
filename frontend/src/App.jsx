@@ -141,6 +141,7 @@ function App() {
   const [isApiConnected, setIsApiConnected] = useState(false);
   const [isGpsLoading, setIsGpsLoading] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [locationError, setLocationError] = useState(false);
 
   // Page Navigation & Theme Switcher States
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
@@ -451,6 +452,7 @@ function App() {
     }
 
     setLoading(true);
+    setLocationError(false);
     const postData = new FormData();
     postData.append('subject', subject);
     postData.append('issueType', issueType);
@@ -493,7 +495,10 @@ function App() {
         fetchIssues(1);
         fetchAnalytics();
       } else {
-        if (data.isInvalidReport) {
+        if (data.isLocationMismatch) {
+          setLocationError(true);
+          showAlert('danger', `Location mismatch: ${data.message}`);
+        } else if (data.isInvalidReport) {
           showAlert('danger', `Validation warning: add valid issue. ${data.message || 'The uploaded image does not correspond to the details.'}`);
         } else {
           showAlert('danger', data.message || 'Failed to submit issue.');
@@ -1375,7 +1380,7 @@ function App() {
                       <label>Location Details (State, District, Place)</label>
                       <select 
                         name="state" 
-                        className="form-control"
+                        className={`form-control ${locationError ? 'input-error' : ''}`}
                         value={formData.state}
                         onChange={handleFormChange}
                         style={{ marginBottom: '8px' }}
@@ -1390,7 +1395,7 @@ function App() {
                         type="text" 
                         name="district"
                         placeholder="District (e.g. Pune, North Delhi)" 
-                        className="form-control"
+                        className={`form-control ${locationError ? 'input-error' : ''}`}
                         value={formData.district}
                         onChange={handleFormChange}
                         style={{ marginBottom: '8px' }}
@@ -1795,7 +1800,7 @@ function App() {
           Standings of our community heroes based on resolved neighborhood issues. Keep reporting to climb up!
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: selectedCitizen ? '1.2fr 1fr' : '1fr', gap: '30px' }}>
+        <div className="leaderboard-container">
           {/* Rankings List */}
           <div className="leaderboard-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {leaderboardData.length === 0 ? (
@@ -1843,45 +1848,47 @@ function App() {
             )}
           </div>
 
-          {/* Profile Detail Card */}
+          {/* Profile Detail Popover Modal */}
           {selectedCitizen && (
-            <div className="citizen-details-container" style={{ background: 'var(--bg-card)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'relative' }}>
-              <button 
-                className="leaderboard-close-btn" 
-                onClick={() => setSelectedCitizen(null)}
-                style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}
-              >
-                &times;
-              </button>
-              
-              <div className="citizen-details-profile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
-                <div className="citizen-details-avatar-placeholder">👤</div>
-                <div className="citizen-details-name" style={{ fontSize: '18px', fontWeight: '800', margin: '10px 0 4px 0', color: 'var(--text)' }}>{selectedCitizen.name}</div>
-                <div className="citizen-details-email" style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{selectedCitizen.email}</div>
+            <div className="settings-modal-overlay" onClick={() => setSelectedCitizen(null)}>
+              <div className="settings-modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+                <button 
+                  className="leaderboard-close-btn" 
+                  onClick={() => setSelectedCitizen(null)}
+                  style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}
+                >
+                  &times;
+                </button>
                 
-                <div className="citizen-points-bubble" style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '6px 14px', borderRadius: '99px', fontSize: '14px', fontWeight: '700' }}>
-                  🏆 <span>{selectedCitizen.totalPoints || 0} Points</span>
+                <div className="citizen-details-profile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
+                  <div className="citizen-details-avatar-placeholder">👤</div>
+                  <div className="citizen-details-name" style={{ fontSize: '20px', fontWeight: '800', margin: '10px 0 4px 0', color: 'var(--text)' }}>{selectedCitizen.name}</div>
+                  <div className="citizen-details-email" style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{selectedCitizen.email}</div>
+                  
+                  <div className="citizen-points-bubble" style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '6px 14px', borderRadius: '99px', fontSize: '14px', fontWeight: '700' }}>
+                    🏆 <span>{selectedCitizen.totalPoints || 0} Points</span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="citizen-stats-section" style={{ width: '100%' }}>
-                <div className="citizen-stats-title" style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.5px' }}>Severity breakdown</div>
-                <div className="citizen-breakdown-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span className="severity-label">🚨 Critical (50 pts)</span>
-                    <span className="severity-count critical" style={{ fontWeight: '700', color: 'var(--severity-critical)' }}>{selectedCitizen.criticalCount || 0}</span>
-                  </div>
-                  <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span className="severity-label">🟠 High (40 pts)</span>
-                    <span className="severity-count high" style={{ fontWeight: '700', color: 'var(--severity-high)' }}>{selectedCitizen.highCount || 0}</span>
-                  </div>
-                  <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span className="severity-label">🟡 Medium (30 pts)</span>
-                    <span className="severity-count medium" style={{ fontWeight: '700', color: 'var(--severity-medium)' }}>{selectedCitizen.mediumCount || 0}</span>
-                  </div>
-                  <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span className="severity-label">🟢 Low (20 pts)</span>
-                    <span className="severity-count low" style={{ fontWeight: '700', color: 'var(--severity-low)' }}>{selectedCitizen.lowCount || 0}</span>
+                
+                <div className="citizen-stats-section" style={{ width: '100%' }}>
+                  <div className="citizen-stats-title" style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.5px' }}>Severity breakdown</div>
+                  <div className="citizen-breakdown-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span className="severity-label">🚨 Critical (50 pts)</span>
+                      <span className="severity-count critical" style={{ fontWeight: '700', color: 'var(--severity-critical)' }}>{selectedCitizen.criticalCount || 0}</span>
+                    </div>
+                    <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span className="severity-label">🟠 High (40 pts)</span>
+                      <span className="severity-count high" style={{ fontWeight: '700', color: 'var(--severity-high)' }}>{selectedCitizen.highCount || 0}</span>
+                    </div>
+                    <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span className="severity-label">🟡 Medium (30 pts)</span>
+                      <span className="severity-count medium" style={{ fontWeight: '700', color: 'var(--severity-medium)' }}>{selectedCitizen.mediumCount || 0}</span>
+                    </div>
+                    <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span className="severity-label">🟢 Low (20 pts)</span>
+                      <span className="severity-count low" style={{ fontWeight: '700', color: 'var(--severity-low)' }}>{selectedCitizen.lowCount || 0}</span>
+                    </div>
                   </div>
                 </div>
               </div>

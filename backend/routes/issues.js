@@ -101,6 +101,50 @@ function verifyMatchingContent(issueType, subject, description, aiResults) {
   return { isValid: true };
 }
 
+// Helper to verify if district/city is located inside the state using Gemini AI
+async function verifyLocation(district, state) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY' || apiKey.trim() === '') {
+    console.log('Gemini API key missing. Skipping location validation.');
+    return { isValid: true };
+  }
+  try {
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
+    const prompt = `
+      You are a geographic verification AI. 
+      Is the city, district, town, or area named "${district}" located inside the state or union territory named "${state}" in India?
+      Note: Chandigarh is a union territory bordering Punjab and Haryana, not inside Himachal Pradesh.
+      
+      Respond ONLY with a JSON object. Do not include markdown formatting or code blocks:
+      {
+        "isValid": true | false,
+        "reason": "If isValid is false, specify a brief explanation (e.g. Chandigarh is a union territory bordering Punjab/Haryana and is not part of Himachal Pradesh.), otherwise empty string."
+      }
+    `;
+    const result = await model.generateContent(prompt);
+    let cleanJson = result.response.text().trim();
+    if (cleanJson.startsWith('```json')) {
+      cleanJson = cleanJson.substring(7);
+    } else if (cleanJson.startsWith('```')) {
+      cleanJson = cleanJson.substring(3);
+    }
+    if (cleanJson.endsWith('```')) {
+      cleanJson = cleanJson.substring(0, cleanJson.length - 3);
+    }
+    cleanJson = cleanJson.trim();
+    const parsed = JSON.parse(cleanJson);
+    return {
+      isValid: parsed.isValid !== false,
+      reason: parsed.reason || 'Invalid location mismatch.'
+    };
+  } catch (error) {
+    console.error('Gemini location validation error:', error.message);
+    return { isValid: true }; // Fallback to true if API errors out
+  }
+}
+
 // Configure Cloudinary only if credentials are provided in env
 const isCloudinaryConfigured = 
   process.env.CLOUDINARY_CLOUD_NAME && 
@@ -399,6 +443,18 @@ router.post('/', userAuth, (req, res) => {
       // Remove uploaded file since request was invalid
       fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: 'All fields (subject, type, description, state, district, place, lat, lng, image) are required.' });
+    }
+
+    // Validate that district belongs to the state using Gemini AI
+    const locationCheck = await verifyLocation(district, state);
+    if (!locationCheck.isValid) {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({
+        message: locationCheck.reason,
+        isLocationMismatch: true
+      });
     }
 
     const parsedLat = parseFloat(latitude);
