@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const Issue = require('../models/Issue');
 const authMiddleware = require('../middleware/authMiddleware');
+const userAuth = require('../middleware/userAuthMiddleware');
 const { analyzeIssueImage } = require('../services/aiService');
 const cloudinary = require('cloudinary').v2;
 
@@ -272,7 +273,7 @@ router.get('/', async (req, res) => {
  * @desc    Report a new community issue (with image, duplicate detection, and AI analysis)
  * @access  Public
  */
-router.post('/', (req, res) => {
+router.post('/', userAuth, (req, res) => {
   upload.single('image')(req, res, async function (err) {
     if (err instanceof multer.MulterError) {
       // A Multer error occurred when uploading.
@@ -420,7 +421,8 @@ router.post('/', (req, res) => {
         severity: aiResults.severity,
         aiConfidence: aiResults.confidence,
         aiDetectedIssue: aiResults.detectedIssue,
-        aiAnalysis: aiResults.analysis
+        aiAnalysis: aiResults.analysis,
+        reportedBy: req.user.id
       });
 
       // Clean up temporary local file if uploaded to Cloudinary

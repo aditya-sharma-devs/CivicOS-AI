@@ -44,9 +44,17 @@ const ISSUE_CATEGORIES = [
 
 function App() {
   // Navigation & Views
-  const [currentView, setCurrentView] = useState(localStorage.getItem('adminToken') ? 'admin' : 'citizen'); // 'citizen', 'login', 'admin'
+  const getInitialView = () => {
+    if (localStorage.getItem('adminToken')) return 'admin';
+    if (localStorage.getItem('userToken')) return 'citizen';
+    return 'landing';
+  };
+  const [currentView, setCurrentView] = useState(getInitialView()); // 'landing', 'user-login', 'user-signup', 'citizen', 'login', 'admin'
   const [adminToken, setAdminToken] = useState(localStorage.getItem('adminToken') || '');
   const [adminUser, setAdminUser] = useState(localStorage.getItem('adminUser') || '');
+  const [userToken, setUserToken] = useState(localStorage.getItem('userToken') || '');
+  const [userName, setUserName] = useState(localStorage.getItem('userName') || '');
+  const [userEmail, setUserEmail] = useState(localStorage.getItem('userEmail') || '');
 
   // Issue Lists & Feed
   const [issues, setIssues] = useState([]);
@@ -90,6 +98,10 @@ function App() {
     password: ''
   });
 
+  // User Sign In & Sign Up Form Data
+  const [userLoginData, setUserLoginData] = useState({ email: '', password: '' });
+  const [userRegisterData, setUserRegisterData] = useState({ name: '', email: '', password: '' });
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null); // { type: 'success' | 'danger' | 'info', message: '' }
@@ -103,6 +115,78 @@ function App() {
   const [isGpsLoading, setIsGpsLoading] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
+  // Google OAuth Auth Callback
+  const handleGoogleAuthCallback = async (response) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/user/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: response.credential })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('userToken', data.token);
+        localStorage.setItem('userEmail', data.user.email);
+        localStorage.setItem('userName', data.user.name);
+        setUserToken(data.token);
+        setUserEmail(data.user.email);
+        setUserName(data.user.name);
+        setCurrentView('citizen');
+        showAlert('success', `Signed in via Google successfully! Welcome, ${data.user.name}.`);
+      } else {
+        showAlert('danger', data.message || 'Google authentication failed.');
+      }
+    } catch (err) {
+      showAlert('danger', 'Failed to connect to authentication server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Google GSI Client Script Button Rendering
+  useEffect(() => {
+    const initializeGoogleAuth = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "1027150192305-fallbackclientid.apps.googleusercontent.com",
+          callback: handleGoogleAuthCallback
+        });
+
+        const loginBtn = document.getElementById("google-signin-login-btn");
+        if (loginBtn) {
+          window.google.accounts.id.renderButton(loginBtn, {
+            theme: "outline",
+            size: "large",
+            width: 320
+          });
+        }
+
+        const signupBtn = document.getElementById("google-signin-signup-btn");
+        if (signupBtn) {
+          window.google.accounts.id.renderButton(signupBtn, {
+            theme: "outline",
+            size: "large",
+            width: 320
+          });
+        }
+      }
+    };
+
+    let attempts = 0;
+    const interval = setInterval(() => {
+      if (window.google) {
+        initializeGoogleAuth();
+        clearInterval(interval);
+      } else {
+        attempts++;
+        if (attempts >= 10) clearInterval(interval);
+      }
+    }, 300);
+
+    return () => clearInterval(interval);
+  }, [currentView]);
+
   // ----------------------------------------------------
   // Debounce search input dynamically
   useEffect(() => {
@@ -115,18 +199,21 @@ function App() {
   // Initial Loads & Side Effects
   // ----------------------------------------------------
   useEffect(() => {
-    fetchIssues(1);
-    fetchAnalytics();
-  }, [debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
+    if (currentView === 'citizen' || currentView === 'admin') {
+      fetchIssues(1);
+      fetchAnalytics();
+    }
+  }, [currentView, debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
 
   // Background polling to synchronize state with server in real-time (every 15 seconds)
   useEffect(() => {
+    if (currentView !== 'citizen' && currentView !== 'admin') return;
     const interval = setInterval(() => {
       fetchIssues(currentPage);
       fetchAnalytics();
     }, 15000);
     return () => clearInterval(interval);
-  }, [currentPage, debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
+  }, [currentView, currentPage, debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
 
   // Check backend server connection
   useEffect(() => {
@@ -163,7 +250,14 @@ function App() {
         query += `&includeArchived=true`;
       }
 
-      const res = await fetch(`${API_BASE_URL}/issues${query}`);
+      const headers = {};
+      if (adminToken) {
+        headers['Authorization'] = `Bearer ${adminToken}`;
+      } else if (userToken) {
+        headers['Authorization'] = `Bearer ${userToken}`;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/issues${query}`, { headers });
       const data = await res.json();
       if (res.ok) {
         setIssues(data.issues);
@@ -182,7 +276,13 @@ function App() {
 
   const fetchAnalytics = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/issues/analytics`);
+      const headers = {};
+      if (adminToken) {
+        headers['Authorization'] = `Bearer ${adminToken}`;
+      } else if (userToken) {
+        headers['Authorization'] = `Bearer ${userToken}`;
+      }
+      const res = await fetch(`${API_BASE_URL}/issues/analytics`, { headers });
       const data = await res.json();
       if (res.ok) {
         setAnalytics(data);
@@ -288,8 +388,14 @@ function App() {
     postData.append('image', image);
 
     try {
+      const headers = {};
+      if (userToken) {
+        headers['Authorization'] = `Bearer ${userToken}`;
+      }
+
       const res = await fetch(`${API_BASE_URL}/issues`, {
         method: 'POST',
+        headers,
         body: postData
       });
       const data = await res.json();
@@ -323,6 +429,98 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ----------------------------------------------------
+  // Citizen / User Handlers
+  // ----------------------------------------------------
+  const handleUserLoginChange = (e) => {
+    const { name, value } = e.target;
+    setUserLoginData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUserRegisterChange = (e) => {
+    const { name, value } = e.target;
+    setUserRegisterData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUserLogin = async (e) => {
+    e.preventDefault();
+    if (!userLoginData.email || !userLoginData.password) {
+      showAlert('danger', 'Please enter all fields.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/user/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userLoginData)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('userToken', data.token);
+        localStorage.setItem('userName', data.user.name);
+        localStorage.setItem('userEmail', data.user.email);
+        setUserToken(data.token);
+        setUserName(data.user.name);
+        setUserEmail(data.user.email);
+        setCurrentView('citizen');
+        showAlert('success', `Signed in successfully. Welcome back, ${data.user.name}!`);
+        setUserLoginData({ email: '', password: '' });
+      } else {
+        showAlert('danger', data.message || 'Login failed.');
+      }
+    } catch (err) {
+      showAlert('danger', 'Failed to connect to authentication server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUserRegister = async (e) => {
+    e.preventDefault();
+    if (!userRegisterData.name || !userRegisterData.email || !userRegisterData.password) {
+      showAlert('danger', 'Please enter all fields.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/user/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userRegisterData)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('userToken', data.token);
+        localStorage.setItem('userName', data.user.name);
+        localStorage.setItem('userEmail', data.user.email);
+        setUserToken(data.token);
+        setUserName(data.user.name);
+        setUserEmail(data.user.email);
+        setCurrentView('citizen');
+        showAlert('success', `Account created successfully! Welcome, ${data.user.name}.`);
+        setUserRegisterData({ name: '', email: '', password: '' });
+      } else {
+        showAlert('danger', data.message || 'Registration failed.');
+      }
+    } catch (err) {
+      showAlert('danger', 'Failed to connect to authentication server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUserLogout = () => {
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    setUserToken('');
+    setUserName('');
+    setUserEmail('');
+    setCurrentView('landing');
+    showAlert('info', 'Logged out successfully.');
   };
 
   // ----------------------------------------------------
@@ -373,7 +571,7 @@ function App() {
     localStorage.removeItem('adminUser');
     setAdminToken('');
     setAdminUser('');
-    setCurrentView('citizen');
+    setCurrentView('landing');
     showAlert('info', 'Logged out of admin panel successfully.');
   };
 
@@ -436,83 +634,248 @@ function App() {
       )}
 
       {/* Header Bar */}
-      <header>
-        <div className="logo-section">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-            <h1>CivicOS AI</h1>
-            <span className={`api-status-badge ${isApiConnected ? 'connected' : ''}`}>
-              <span className="status-dot"></span>
-              {isApiConnected ? 'DB Connected' : 'DB Disconnected'}
-            </span>
-          </div>
-          <p>Hyperlocal Problem Solver | Verified Community Infrastructure Hub</p>
-        </div>
-        <div className="nav-buttons">
-          {currentView === 'citizen' && (
-            adminToken ? (
-              <button className="btn btn-primary" onClick={() => { setCurrentView('admin'); fetchIssues(1); }}>
-                🛡️ Admin Panel Dashboard
-              </button>
-            ) : (
-              <button className="btn btn-secondary" onClick={() => setCurrentView('login')}>
-                🔒 Admin Login Portal
-              </button>
-            )
-          )}
-          {currentView === 'login' && (
-            <button className="btn btn-secondary" onClick={() => setCurrentView('citizen')}>
-              Public Dashboard
-            </button>
-          )}
-          {currentView === 'admin' && (
-            <>
-              <span style={{ marginRight: '10px', fontSize: '14px', color: '#94a3b8' }}>
-                👤 {adminUser} (Admin)
+      {!['landing', 'user-login', 'user-signup'].includes(currentView) && (
+        <header>
+          <div className="logo-section">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+              <h1>CivicOS AI</h1>
+              <span className={`api-status-badge ${isApiConnected ? 'connected' : ''}`}>
+                <span className="status-dot"></span>
+                {isApiConnected ? 'DB Connected' : 'DB Disconnected'}
               </span>
-              <button 
-                className={`btn ${currentView === 'admin' ? 'btn-primary' : 'btn-secondary'}`} 
-                onClick={() => fetchIssues(1)}
-                style={{ marginRight: '8px' }}
-              >
-                Admin Panel Feed
+            </div>
+            <p>Hyperlocal Problem Solver | Verified Community Infrastructure Hub</p>
+          </div>
+          <div className="nav-buttons">
+            {currentView === 'citizen' && (
+              <>
+                {adminToken ? (
+                  <button className="btn btn-primary" onClick={() => { setCurrentView('admin'); fetchIssues(1); }}>
+                    🛡️ Admin Panel Dashboard
+                  </button>
+                ) : (
+                  <button className="btn btn-secondary" onClick={() => setCurrentView('login')}>
+                    🔒 Admin Login Portal
+                  </button>
+                )}
+                {userToken && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginLeft: '12px' }}>
+                    <span style={{ fontSize: '13px', color: '#94a3b8' }}>
+                      Citizen: <strong style={{ color: 'white' }}>{userName}</strong>
+                    </span>
+                    <button className="btn btn-danger" onClick={handleUserLogout} style={{ padding: '6px 12px' }}>
+                      Log Out
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+            {currentView === 'login' && (
+              <button className="btn btn-secondary" onClick={() => setCurrentView(userToken ? 'citizen' : 'landing')}>
+                Back to Dashboard
               </button>
-              <button className="btn btn-secondary" onClick={() => { setCurrentView('citizen'); fetchIssues(1); }}>
-                View Citizen Screen
-              </button>
-              <button className="btn btn-danger" onClick={handleAdminLogout}>
-                Log Out
-              </button>
-            </>
-          )}
-        </div>
-      </header>
+            )}
+            {currentView === 'admin' && (
+              <>
+                <span style={{ marginRight: '10px', fontSize: '14px', color: '#94a3b8' }}>
+                  👤 {adminUser} (Admin)
+                </span>
+                <button 
+                  className={`btn ${currentView === 'admin' ? 'btn-primary' : 'btn-secondary'}`} 
+                  onClick={() => fetchIssues(1)}
+                  style={{ marginRight: '8px' }}
+                >
+                  Admin Panel Feed
+                </button>
+                <button className="btn btn-secondary" onClick={() => { setCurrentView('citizen'); fetchIssues(1); }}>
+                  View Citizen Screen
+                </button>
+                <button className="btn btn-danger" onClick={handleAdminLogout}>
+                  Log Out
+                </button>
+              </>
+            )}
+          </div>
+        </header>
+      )}
 
       {/* Analytics Panel */}
-      <div className="analytics-grid">
-        <div className="stat-card">
-          <div className="stat-label">Total Reports</div>
-          <div className="stat-val">{analytics.total}</div>
+      {!['landing', 'user-login', 'user-signup', 'login'].includes(currentView) && (
+        <div className="analytics-grid">
+          <div className="stat-card">
+            <div className="stat-label">Total Reports</div>
+            <div className="stat-val">{analytics.total}</div>
+          </div>
+          <div className="stat-card pending">
+            <div className="stat-label">Pending Reviews</div>
+            <div className="stat-val">{analytics.pending}</div>
+          </div>
+          <div className="stat-card resolved">
+            <div className="stat-label">Resolved Issues</div>
+            <div className="stat-val">{analytics.resolved}</div>
+          </div>
+          <div className="stat-card critical">
+            <div className="stat-label">Critical Hazards</div>
+            <div className="stat-val">{analytics.critical}</div>
+          </div>
+          <div className="stat-card today">
+            <div className="stat-label">Reported Today</div>
+            <div className="stat-val">{analytics.todayReports}</div>
+          </div>
         </div>
-        <div className="stat-card pending">
-          <div className="stat-label">Pending Reviews</div>
-          <div className="stat-val">{analytics.pending}</div>
-        </div>
-        <div className="stat-card resolved">
-          <div className="stat-label">Resolved Issues</div>
-          <div className="stat-val">{analytics.resolved}</div>
-        </div>
-        <div className="stat-card critical">
-          <div className="stat-label">Critical Hazards</div>
-          <div className="stat-val">{analytics.critical}</div>
-        </div>
-        <div className="stat-card today">
-          <div className="stat-label">Reported Today</div>
-          <div className="stat-val">{analytics.todayReports}</div>
-        </div>
-      </div>
+      )}
 
       {/* Main Body Switcher */}
-      {currentView === 'login' ? (
+      {currentView === 'landing' && (
+        <div className="landing-container">
+          <div className="landing-header">
+            <h1>CivicOS AI</h1>
+            <p>Hyperlocal Community Problem Solver & Real-time Verified Infrastructure Hazard Hub</p>
+          </div>
+          
+          <div className="portal-grid">
+            {/* Citizen Portal */}
+            <div className="portal-card">
+              <div>
+                <span className="portal-icon">📢</span>
+                <h3>Citizen Reporting Portal</h3>
+                <p>Report potholes, broken streetlights, water leaks, and waste issues. Leverage Gemini AI to verify hazard details instantly.</p>
+              </div>
+              <div className="portal-actions">
+                <button className="btn btn-primary" onClick={() => setCurrentView('user-login')}>
+                  Citizen Sign In
+                </button>
+                <button className="btn btn-outline" onClick={() => setCurrentView('user-signup')}>
+                  Create Citizen Account
+                </button>
+              </div>
+            </div>
+
+            {/* Authority Portal */}
+            <div className="portal-card">
+              <div>
+                <span className="portal-icon">🛡️</span>
+                <h3>Authority Dashboard</h3>
+                <p>Verify citizen submissions, manage infrastructure fixes, update resolved hazards, and track community analytics.</p>
+              </div>
+              <div className="portal-actions" style={{ marginTop: 'auto' }}>
+                <button className="btn btn-primary" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)' }} onClick={() => setCurrentView('login')}>
+                  Authority Sign In
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {currentView === 'user-login' && (
+        <div className="login-card">
+          <h2>Citizen Sign In</h2>
+          <form onSubmit={handleUserLogin}>
+            <div className="form-group">
+              <label>Email Address</label>
+              <input 
+                type="email" 
+                name="email" 
+                className="form-control"
+                value={userLoginData.email}
+                onChange={handleUserLoginChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Password</label>
+              <input 
+                type="password" 
+                name="password" 
+                className="form-control"
+                value={userLoginData.password}
+                onChange={handleUserLoginChange}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
+              {loading ? 'Authenticating...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="social-divider">OR</div>
+
+          <div className="social-btn-container">
+            <div className="google-signin-btn-wrapper">
+              <div id="google-signin-login-btn"></div>
+            </div>
+          </div>
+
+          <a className="auth-nav-link" onClick={() => setCurrentView('user-signup')}>
+            Don't have an account? Sign Up
+          </a>
+          <a className="auth-nav-link" onClick={() => setCurrentView('landing')} style={{ marginTop: '8px', fontSize: '11px' }}>
+            ← Back to Portal Selection
+          </a>
+        </div>
+      )}
+
+      {currentView === 'user-signup' && (
+        <div className="login-card">
+          <h2>Create Citizen Account</h2>
+          <form onSubmit={handleUserRegister}>
+            <div className="form-group">
+              <label>Full Name</label>
+              <input 
+                type="text" 
+                name="name" 
+                className="form-control"
+                value={userRegisterData.name}
+                onChange={handleUserRegisterChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Email Address</label>
+              <input 
+                type="email" 
+                name="email" 
+                className="form-control"
+                value={userRegisterData.email}
+                onChange={handleUserRegisterChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Password</label>
+              <input 
+                type="password" 
+                name="password" 
+                className="form-control"
+                value={userRegisterData.password}
+                onChange={handleUserRegisterChange}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
+              {loading ? 'Registering...' : 'Sign Up'}
+            </button>
+          </form>
+
+          <div className="social-divider">OR</div>
+
+          <div className="social-btn-container">
+            <div className="google-signin-btn-wrapper">
+              <div id="google-signin-signup-btn"></div>
+            </div>
+          </div>
+
+          <a className="auth-nav-link" onClick={() => setCurrentView('user-login')}>
+            Already have an account? Sign In
+          </a>
+          <a className="auth-nav-link" onClick={() => setCurrentView('landing')} style={{ marginTop: '8px', fontSize: '11px' }}>
+            ← Back to Portal Selection
+          </a>
+        </div>
+      )}
+
+      {currentView === 'login' && (
         <div className="login-card">
           <h2>Admin Authentication</h2>
           <form onSubmit={handleAdminLogin}>
@@ -542,8 +905,13 @@ function App() {
               {loading ? 'Authenticating...' : 'Sign In'}
             </button>
           </form>
+          <a className="auth-nav-link" onClick={() => setCurrentView('landing')} style={{ marginTop: '20px', fontSize: '11px' }}>
+            ← Back to Portal Selection
+          </a>
         </div>
-      ) : (
+      )}
+
+      {['citizen', 'admin'].includes(currentView) && (
         <>
           <div className="main-grid">
           {/* Left column - Submission form (only shown in citizen view) */}

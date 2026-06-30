@@ -81,6 +81,10 @@ const issueSchema = new mongoose.Schema({
     default: 1
   },
   duplicateReports: [duplicateReportSchema],
+  reportedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   resolvedAt: {
     type: Date
   }
