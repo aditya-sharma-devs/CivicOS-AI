@@ -1150,7 +1150,7 @@ function App() {
                             </div>
                             
                             <div className="leaderboard-count-badge">
-                              <span>{entry.uniqueReportsCount}</span> unique
+                              <span>{entry.totalPoints || 0} pts</span> ({entry.uniqueReportsCount} unique)
                             </div>
                           </div>
                         );

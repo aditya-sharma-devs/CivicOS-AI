@@ -227,10 +227,23 @@ router.get('/leaderboard', async (req, res) => {
       {
         $group: {
           _id: '$reportedBy',
-          uniqueReportsCount: { $sum: 1 }
+          uniqueReportsCount: { $sum: 1 },
+          totalPoints: {
+            $sum: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ['$severity', 'Critical'] }, then: 50 },
+                  { case: { $eq: ['$severity', 'High'] }, then: 40 },
+                  { case: { $eq: ['$severity', 'Medium'] }, then: 30 },
+                  { case: { $eq: ['$severity', 'Low'] }, then: 20 }
+                ],
+                default: 20
+              }
+            }
+          }
         }
       },
-      { $sort: { uniqueReportsCount: -1 } },
+      { $sort: { totalPoints: -1, uniqueReportsCount: -1 } },
       {
         $lookup: {
           from: 'users',
@@ -244,6 +257,7 @@ router.get('/leaderboard', async (req, res) => {
         $project: {
           _id: 1,
           uniqueReportsCount: 1,
+          totalPoints: 1,
           name: '$userDetails.name',
           email: '$userDetails.email',
           avatar: '$userDetails.avatar'
