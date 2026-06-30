@@ -962,27 +962,43 @@ function App() {
       </header>
 
       {/* Analytics Panel */}
-      {!['landing', 'user-login', 'user-signup', 'login'].includes(currentView) && (
+      {/* Analytics Panel */}
+      {activeTab === 'problems' && !['user-login', 'user-signup', 'login'].includes(currentView) && (
         <div className="analytics-grid">
-          <div className="stat-card">
-            <div className="stat-label">Total Reports</div>
-            <div className="stat-val">{analytics.total}</div>
+          <div className="stat-card total">
+            <div className="stat-card-left">
+              <div className="stat-label">Total Reports</div>
+              <div className="stat-val">{analytics.total}</div>
+            </div>
+            <div className="stat-card-icon">📊</div>
           </div>
           <div className="stat-card pending">
-            <div className="stat-label">Pending Reviews</div>
-            <div className="stat-val">{analytics.pending}</div>
+            <div className="stat-card-left">
+              <div className="stat-label">Pending Reviews</div>
+              <div className="stat-val">{analytics.pending}</div>
+            </div>
+            <div className="stat-card-icon">⏳</div>
           </div>
           <div className="stat-card resolved">
-            <div className="stat-label">Resolved Issues</div>
-            <div className="stat-val">{analytics.resolved}</div>
+            <div className="stat-card-left">
+              <div className="stat-label">Resolved Issues</div>
+              <div className="stat-val">{analytics.resolved}</div>
+            </div>
+            <div className="stat-card-icon">✅</div>
           </div>
           <div className="stat-card critical">
-            <div className="stat-label">Critical Hazards</div>
-            <div className="stat-val">{analytics.critical}</div>
+            <div className="stat-card-left">
+              <div className="stat-label">Critical Hazards</div>
+              <div className="stat-val">{analytics.critical}</div>
+            </div>
+            <div className="stat-card-icon">🚨</div>
           </div>
           <div className="stat-card today">
-            <div className="stat-label">Reported Today</div>
-            <div className="stat-val">{analytics.todayReports}</div>
+            <div className="stat-card-left">
+              <div className="stat-label">Reported Today</div>
+              <div className="stat-val">{analytics.todayReports}</div>
+            </div>
+            <div className="stat-card-icon">📅</div>
           </div>
         </div>
       )}
@@ -1303,7 +1319,7 @@ function App() {
         <>
           <div className="main-grid">
             {/* Left column - Submission form */}
-          {currentView !== 'admin' && (
+          {currentView !== 'admin' && userToken && (
             <div className="left-column-container" style={{ position: 'relative' }}>
               <div className="card reporting-form-card">
                 <h2>Report Infrastructure Issue</h2>
@@ -1448,7 +1464,7 @@ function App() {
             )}
 
           {/* Right column: Issues Section */}
-          <div className="issues-feed-section" style={{ gridColumn: (currentView === 'admin' && !showLeaderboard) ? '1 / -1' : 'auto' }}>
+          <div className="issues-feed-section" style={{ gridColumn: (currentView === 'admin' || !userToken) ? '1 / -1' : 'auto' }}>
             
             {/* Filter Panel (Now inside the right column, matching its width exactly) */}
             {currentView !== 'login' && (
@@ -1537,13 +1553,28 @@ function App() {
             )}
 
             {/* Issues Feed Header */}
-            <div className="feed-header">
-              <h2>
-                {currentView === 'admin' ? '🛡️ Administration Control Feed' : '📢 Public Infrastructure Dashboard'}
-              </h2>
-              <span className="page-info">
-                Showing {issues.length} of {totalResults} reports
-              </span>
+            <div className="feed-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ margin: 0 }}>
+                  {currentView === 'admin' ? '🛡️ Administration Control Feed' : '📢 Public Infrastructure Dashboard'}
+                </h2>
+                <span className="page-info" style={{ display: 'block', marginTop: '4px' }}>
+                  Showing {issues.length} of {totalResults} reports
+                </span>
+              </div>
+              {!userToken && !adminToken && (
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setCurrentView('user-login');
+                    setForgotPasswordStep(0);
+                    showAlert('info', 'Please sign in or register to submit reports!');
+                  }}
+                  style={{ gap: '8px' }}
+                >
+                  📢 Report an Issue
+                </button>
+              )}
             </div>
 
             {/* Issues Cards */}
