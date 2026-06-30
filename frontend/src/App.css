@@ -502,8 +502,9 @@ textarea.form-control {
 
 textarea.form-control::-webkit-scrollbar{
   background: transparent;
-  width: 3px;
+  width: 2px;
 }
+
 
 .geo-input-group {
   display: grid;

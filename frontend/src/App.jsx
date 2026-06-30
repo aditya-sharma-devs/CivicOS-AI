@@ -389,12 +389,19 @@ function App() {
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        const accuracy = position.coords.accuracy || 0;
+        if (accuracy > 500) {
+          showAlert('warning', `GPS accuracy is too low (${Math.round(accuracy)}m error range, limit is 500m). Please stand outdoors or input coordinates manually.`);
+          setIsGpsLoading(false);
+          return;
+        }
+
         setFormData(prev => ({
           ...prev,
           latitude: position.coords.latitude.toFixed(6),
           longitude: position.coords.longitude.toFixed(6)
         }));
-        showAlert('success', 'GPS coordinates loaded successfully.');
+        showAlert('success', `GPS coordinates loaded successfully (accuracy range: ${Math.round(accuracy)}m).`);
         setIsGpsLoading(false);
       },
       (error) => {
