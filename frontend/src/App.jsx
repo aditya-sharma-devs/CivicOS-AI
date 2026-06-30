@@ -106,6 +106,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null); // { type: 'success' | 'danger' | 'info', message: '' }
   const [expandedDuplicates, setExpandedDuplicates] = useState({}); // maps issue._id to boolean
+  
+  // Leaderboard States
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Admin Status Update State (temp holder for each card's selected status)
   const [tempStatus, setTempStatus] = useState({});
@@ -202,6 +206,7 @@ function App() {
     if (currentView === 'citizen' || currentView === 'admin') {
       fetchIssues(1);
       fetchAnalytics();
+      fetchLeaderboard();
     }
   }, [currentView, debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
 
@@ -211,6 +216,7 @@ function App() {
     const interval = setInterval(() => {
       fetchIssues(currentPage);
       fetchAnalytics();
+      fetchLeaderboard();
     }, 15000);
     return () => clearInterval(interval);
   }, [currentView, currentPage, debouncedSearch, stateFilter, statusFilter, categoryFilter, severityFilter, sortBy]);
@@ -289,6 +295,32 @@ function App() {
       }
     } catch (err) {
       console.error('Error fetching analytics:', err);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    try {
+      let query = `?sortBy=${sortBy}`;
+      if (debouncedSearch) query += `&search=${encodeURIComponent(debouncedSearch)}`;
+      if (stateFilter) query += `&state=${encodeURIComponent(stateFilter)}`;
+      if (statusFilter) query += `&status=${encodeURIComponent(statusFilter)}`;
+      if (categoryFilter) query += `&issueType=${encodeURIComponent(categoryFilter)}`;
+      if (severityFilter) query += `&severity=${encodeURIComponent(severityFilter)}`;
+
+      const headers = {};
+      if (adminToken) {
+        headers['Authorization'] = `Bearer ${adminToken}`;
+      } else if (userToken) {
+        headers['Authorization'] = `Bearer ${userToken}`;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/issues/leaderboard${query}`, { headers });
+      const data = await res.json();
+      if (res.ok) {
+        setLeaderboardData(data);
+      }
+    } catch (err) {
+      console.error('Error fetching leaderboard:', err);
     }
   };
 
@@ -649,6 +681,18 @@ function App() {
           <div className="nav-buttons">
             {currentView === 'citizen' && (
               <>
+                <button 
+                  className="btn btn-outline" 
+                  onClick={() => setShowLeaderboard(prev => !prev)} 
+                  style={{ 
+                    border: showLeaderboard ? '1px solid var(--primary-hover)' : '', 
+                    color: showLeaderboard ? 'var(--primary-hover)' : '',
+                    background: showLeaderboard ? 'rgba(99, 102, 241, 0.1)' : '',
+                    marginRight: '8px'
+                  }}
+                >
+                  🏆 Leaderboard
+                </button>
                 {adminToken ? (
                   <button className="btn btn-primary" onClick={() => { setCurrentView('admin'); fetchIssues(1); }}>
                     🛡️ Admin Panel Dashboard
@@ -677,6 +721,18 @@ function App() {
             )}
             {currentView === 'admin' && (
               <>
+                <button 
+                  className="btn btn-outline" 
+                  onClick={() => setShowLeaderboard(prev => !prev)} 
+                  style={{ 
+                    border: showLeaderboard ? '1px solid var(--primary-hover)' : '', 
+                    color: showLeaderboard ? 'var(--primary-hover)' : '',
+                    background: showLeaderboard ? 'rgba(99, 102, 241, 0.1)' : '',
+                    marginRight: '8px'
+                  }}
+                >
+                  🏆 Leaderboard
+                </button>
                 <span style={{ marginRight: '10px', fontSize: '14px', color: '#94a3b8' }}>
                   👤 {adminUser} (Admin)
                 </span>
@@ -914,150 +970,200 @@ function App() {
       {['citizen', 'admin'].includes(currentView) && (
         <>
           <div className="main-grid">
-          {/* Left column - Submission form (only shown in citizen view) */}
-          {currentView === 'citizen' && (
-            <div className="card reporting-form-card">
-              <h2>Report Infrastructure Issue</h2>
-              <form onSubmit={handleReportSubmit}>
-                <div className="form-group">
-                  <label>Subject / Brief Summary</label>
-                  <input 
-                    type="text" 
-                    name="subject"
-                    placeholder="e.g. Deep pothole causing skids" 
-                    className="form-control"
-                    value={formData.subject}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Issue Category</label>
-                  <select 
-                    name="issueType" 
-                    className="form-control"
-                    value={formData.issueType}
-                    onChange={handleFormChange}
-                  >
-                    {ISSUE_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Detailed Description</label>
-                  <textarea 
-                    name="description" 
-                    rows="3"
-                    placeholder="Describe the depth, exact landmark, and hazard history..."
-                    className="form-control"
-                    value={formData.description}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Location details (State, District, Place)</label>
-                  <select 
-                    name="state" 
-                    className="form-control"
-                    value={formData.state}
-                    onChange={handleFormChange}
-                    required
-                    style={{ marginBottom: '8px' }}
-                  >
-                    <option value="">Select Indian State</option>
-                    {INDIAN_STATES.map(st => (
-                      <option key={st} value={st}>{st}</option>
-                    ))}
-                  </select>
-                  <input 
-                    type="text" 
-                    name="district"
-                    placeholder="District (e.g. Pune, North Delhi)" 
-                    className="form-control"
-                    value={formData.district}
-                    onChange={handleFormChange}
-                    required
-                    style={{ marginBottom: '8px' }}
-                  />
-                  <input 
-                    type="text" 
-                    name="place"
-                    placeholder="Place / Ward / Near Landmark" 
-                    className="form-control"
-                    value={formData.place}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Coordinates (Latitude & Longitude)</label>
-                  <button type="button" className="btn-geo" onClick={handleGetLocation} style={{ marginBottom: '8px' }} disabled={isGpsLoading}>
-                    {isGpsLoading ? <span className="spinner"></span> : '📍'} Detect Current GPS Location
-                  </button>
-                  <div className="geo-input-group">
-                    <input 
-                      type="text" 
-                      name="latitude"
-                      placeholder="Latitude" 
-                      className="form-control"
-                      value={formData.latitude}
-                      onChange={handleFormChange}
-                      required
-                    />
-                    <input 
-                      type="text" 
-                      name="longitude"
-                      placeholder="Longitude" 
-                      className="form-control"
-                      value={formData.longitude}
-                      onChange={handleFormChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Evidence Image Upload (JPEG/PNG, max 5MB)</label>
-                  <div className="file-upload-wrapper" onClick={() => document.getElementById('imageFile').click()}>
-                    <span className="file-upload-text">
-                      📷 {formData.image ? formData.image.name : 'Click to select / upload image'}
-                    </span>
-                    <input 
-                      id="imageFile"
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleFileChange}
-                    />
-                  </div>
-                  {imagePreview && (
-                    <div className="preview-container" style={{ position: 'relative', marginTop: '10px' }}>
-                      <img src={imagePreview} alt="Upload preview" className="preview-thumb" />
-                      <button 
-                        type="button" 
-                        className="btn-remove-preview"
-                        onClick={handleRemoveImage}
-                      >
-                        &times; Remove Photo
-                      </button>
+            {/* Left column - Submission form or Leaderboard */}
+          {(currentView === 'citizen' || showLeaderboard) && (
+            <div className="left-column-container" style={{ position: 'relative' }}>
+              {currentView === 'citizen' && (
+                <div className="card reporting-form-card" style={{ visibility: showLeaderboard ? 'hidden' : 'visible' }}>
+                  <h2>Report Infrastructure Issue</h2>
+                  <form onSubmit={handleReportSubmit}>
+                    <div className="form-group">
+                      <label>Subject / Brief Summary</label>
+                      <input 
+                        type="text" 
+                        name="subject"
+                        placeholder="e.g. Deep pothole causing skids" 
+                        className="form-control"
+                        value={formData.subject}
+                        onChange={handleFormChange}
+                        required
+                      />
                     </div>
-                  )}
-                </div>
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
-                  {loading ? 'Submitting & Running AI Analysis...' : 'Submit Infrastructure Report'}
-                </button>
-              </form>
+                    <div className="form-group">
+                      <label>Issue Category</label>
+                      <select 
+                        name="issueType" 
+                        className="form-control"
+                        value={formData.issueType}
+                        onChange={handleFormChange}
+                        required
+                      >
+                        {ISSUE_CATEGORIES.map(category => (
+                          <option key={category} value={category}>{category}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Detailed Description</label>
+                      <textarea 
+                        name="description"
+                        placeholder="Describe the depth, exact landmark, and hazard history..." 
+                        className="form-control"
+                        rows="4"
+                        value={formData.description}
+                        onChange={handleFormChange}
+                        required
+                      ></textarea>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Location Details (State, District, Place)</label>
+                      <select 
+                        name="state" 
+                        className="form-control"
+                        value={formData.state}
+                        onChange={handleFormChange}
+                        style={{ marginBottom: '8px' }}
+                        required
+                      >
+                        <option value="">Select Indian State</option>
+                        {INDIAN_STATES.map(state => (
+                          <option key={state} value={state}>{state}</option>
+                        ))}
+                      </select>
+                      <input 
+                        type="text" 
+                        name="district"
+                        placeholder="District (e.g. Pune, North Delhi)" 
+                        className="form-control"
+                        value={formData.district}
+                        onChange={handleFormChange}
+                        style={{ marginBottom: '8px' }}
+                        required
+                      />
+                      <input 
+                        type="text" 
+                        name="place"
+                        placeholder="Place / Ward / Near Landmark" 
+                        className="form-control"
+                        value={formData.place}
+                        onChange={handleFormChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Coordinates (Latitude & Longitude)</label>
+                      <button type="button" className="btn-geo" onClick={handleGetLocation} style={{ marginBottom: '8px' }} disabled={isGpsLoading}>
+                        {isGpsLoading ? <span className="spinner"></span> : '📍'} Detect Current GPS Location
+                      </button>
+                      <div className="geo-input-group">
+                        <input 
+                          type="text" 
+                          name="latitude"
+                          placeholder="Latitude" 
+                          className="form-control"
+                          value={formData.latitude}
+                          onChange={handleFormChange}
+                          required
+                        />
+                        <input 
+                          type="text" 
+                          name="longitude"
+                          placeholder="Longitude" 
+                          className="form-control"
+                          value={formData.longitude}
+                          onChange={handleFormChange}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Evidence Image Upload (JPEG/PNG, max 5MB)</label>
+                      <div className="file-upload-wrapper" onClick={() => document.getElementById('imageFile').click()}>
+                        <span className="file-upload-text">
+                          📷 {formData.image ? formData.image.name : 'Click to select / upload image'}
+                        </span>
+                        <input 
+                          id="imageFile"
+                          type="file" 
+                          accept="image/*"
+                          onChange={handleFileChange}
+                        />
+                      </div>
+                      {imagePreview && (
+                        <div className="preview-container" style={{ position: 'relative', marginTop: '10px' }}>
+                          <img src={imagePreview} alt="Upload preview" className="preview-thumb" />
+                          <button 
+                            type="button" 
+                            className="btn-remove-preview"
+                            onClick={handleRemoveImage}
+                          >
+                            &times; Remove Photo
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
+                      {loading ? 'Submitting & Running AI Analysis...' : 'Submit Infrastructure Report'}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {showLeaderboard && (
+                <div className="leaderboard-overlay-card" style={{ minHeight: currentView === 'admin' ? '500px' : 'auto' }}>
+                  <div className="leaderboard-header">
+                    <h3>🏆 Citizen Leaderboard</h3>
+                    <button className="leaderboard-close-btn" onClick={() => setShowLeaderboard(false)}>
+                      Close &times;
+                    </button>
+                  </div>
+                  
+                  <div className="leaderboard-list">
+                    {leaderboardData.length === 0 ? (
+                      <div className="leaderboard-empty">
+                        No ranked citizens match the active filters.
+                      </div>
+                    ) : (
+                      leaderboardData.map((entry, index) => {
+                        const rank = index + 1;
+                        return (
+                          <div key={entry._id} className={`leaderboard-item rank-${rank <= 3 ? rank : 'other'}`}>
+                            <div className="leaderboard-user-info">
+                              <div className="leaderboard-rank-badge">
+                                {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
+                              </div>
+                              <img 
+                                src={entry.avatar || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                                alt={entry.name}
+                                className="leaderboard-avatar"
+                              />
+                              <div className="leaderboard-details">
+                                <span className="leaderboard-username">{entry.name}</span>
+                                <span className="leaderboard-useremail">{entry.email}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="leaderboard-count-badge">
+                              <span>{entry.uniqueReportsCount}</span> unique
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* Right column: Issues Section */}
-          <div className="issues-feed-section" style={{ gridColumn: currentView === 'admin' ? '1 / -1' : 'auto' }}>
+          <div className="issues-feed-section" style={{ gridColumn: (currentView === 'admin' && !showLeaderboard) ? '1 / -1' : 'auto' }}>
             
             {/* Filter Panel (Now inside the right column, matching its width exactly) */}
             {currentView !== 'login' && (

@@ -1702,3 +1702,198 @@ select.select-admin-status option {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
 }
+
+/* Leaderboard Overlay Styles */
+.leaderboard-overlay-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0d121f; /* Solid dark background matching portal theme */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 14px;
+}
+
+.leaderboard-header h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: white;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leaderboard-close-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.leaderboard-close-btn:hover {
+  background: rgba(244, 63, 94, 0.2);
+  color: #f43f5e;
+}
+
+.leaderboard-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+/* Custom scrollbar for leaderboard list */
+.leaderboard-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.leaderboard-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leaderboard-list::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 3px;
+}
+
+.leaderboard-list::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.leaderboard-item:hover {
+  background: rgba(99, 102, 241, 0.05);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.leaderboard-item.rank-1 {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.leaderboard-item.rank-2 {
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.leaderboard-item.rank-3 {
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-color: rgba(180, 83, 9, 0.3);
+}
+
+.leaderboard-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.leaderboard-rank-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.rank-1 .leaderboard-rank-badge {
+  background: #eab308;
+  color: #0f172a;
+}
+
+.rank-2 .leaderboard-rank-badge {
+  background: #94a3b8;
+  color: #0f172a;
+}
+
+.rank-3 .leaderboard-rank-badge {
+  background: #b45309;
+  color: #ffffff;
+}
+
+.leaderboard-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.leaderboard-username {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+}
+
+.leaderboard-useremail {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.leaderboard-count-badge {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rank-1 .leaderboard-count-badge {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.leaderboard-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}

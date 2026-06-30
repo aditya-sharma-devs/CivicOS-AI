@@ -184,6 +184,80 @@ router.get('/analytics', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/issues/leaderboard
+ * @desc    Get dynamic citizen leaderboard based on reported unique issues and filters
+ * @access  Public
+ */
+router.get('/leaderboard', async (req, res) => {
+  try {
+    const filter = {};
+
+    // 1. Build search filters
+    if (req.query.search) {
+      const searchRegex = new RegExp(req.query.search, 'i');
+      filter.$or = [
+        { subject: searchRegex },
+        { description: searchRegex },
+        { readableId: searchRegex },
+        { district: searchRegex },
+        { place: searchRegex }
+      ];
+    }
+
+    // 2. Build dropdown filters
+    if (req.query.state) {
+      filter.state = new RegExp(`^${req.query.state}$`, 'i');
+    }
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+    if (req.query.issueType) {
+      filter.issueType = req.query.issueType;
+    }
+    if (req.query.severity) {
+      filter.severity = req.query.severity;
+    }
+
+    // Ensure we only rank citizens with registered User profiles
+    filter.reportedBy = { $exists: true, $ne: null };
+
+    // Run the aggregation pipeline
+    const leaderboard = await Issue.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: '$reportedBy',
+          uniqueReportsCount: { $sum: 1 }
+        }
+      },
+      { $sort: { uniqueReportsCount: -1 } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'userDetails'
+        }
+      },
+      { $unwind: '$userDetails' },
+      {
+        $project: {
+          _id: 1,
+          uniqueReportsCount: 1,
+          name: '$userDetails.name',
+          email: '$userDetails.email',
+          avatar: '$userDetails.avatar'
+        }
+      }
+    ]);
+
+    res.json(leaderboard);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving leaderboard', error: error.message });
+  }
+});
+
+/**
  * @route   GET /api/issues
  * @desc    Get all issues with pagination, sorting, search, and filtering
  * @access  Public
