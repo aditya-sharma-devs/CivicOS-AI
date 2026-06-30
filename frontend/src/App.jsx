@@ -886,15 +886,6 @@ function App() {
 
         {/* Right Side Tools & Profiles */}
         <div className="nav-buttons" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Ask Gemini Button */}
-          <button 
-            className="btn btn-outline" 
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(99,102,241,0.08)' }}
-            onClick={() => showAlert('info', 'Ask Gemini AI assistant helper coming soon!')}
-          >
-            🤖 Ask Gemini
-          </button>
-
           {/* Theme Toggler */}
           <button 
             className="theme-toggle-btn"

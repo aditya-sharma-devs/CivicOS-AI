@@ -25,6 +25,9 @@
   --glass-blur: blur(12px);
   --bg-input: rgba(15, 23, 42, 0.45);
   --border-focus: rgba(99, 102, 241, 0.35);
+  --btn-secondary-bg: rgba(255, 255, 255, 0.06);
+  --btn-secondary-color: var(--text);
+  --btn-secondary-border: rgba(255, 255, 255, 0.12);
 
   --text: #f8fafc;
   --text-muted: #94a3b8;
@@ -72,9 +75,14 @@ body.light-theme {
   );
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(15, 23, 42, 0.08);
+  --bg-input: #ffffff;
+  --border-focus: rgba(79, 70, 229, 0.35);
+  --btn-secondary-bg: rgba(15, 23, 42, 0.05);
+  --btn-secondary-color: var(--text);
+  --btn-secondary-border: rgba(15, 23, 42, 0.08);
 
   --text: #0f172a;
-  --text-muted: #475569;
+  --text-muted: #334155;
 
   --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.06);
   --shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
@@ -109,7 +117,7 @@ h4,
 /* Premium Header styling */
 header {
   background: var(--header-gradient);
-  color: white;
+  color: var(--text);
   padding: 30px 40px;
   border-radius: var(--radius-lg);
   margin-bottom: 30px;
@@ -180,35 +188,40 @@ header::before {
 .btn-primary {
   background-color: var(--primary);
   color: white;
-  box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.4);
+  box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(79, 70, 229, 0.5);
+  box-shadow: 0 6px 20px 0 rgba(79, 70, 229, 0.4);
 }
 
 .btn-secondary {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-color);
+  border: 1px solid var(--btn-secondary-border);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--primary-light);
+  border-color: var(--primary);
   transform: translateY(-2px);
 }
 
 .btn-outline {
   background-color: transparent;
-  color: var(--primary);
-  border-color: var(--primary);
+  color: var(--text);
+  border: 1px solid var(--glass-border);
 }
 
 .btn-outline:hover {
-  background-color: var(--primary-glow);
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
   transform: translateY(-2px);
 }
 
@@ -2148,8 +2161,8 @@ header {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--btn-secondary-border);
   padding: 6px 16px 6px 8px;
   border-radius: 50px;
   margin-left: 12px;
@@ -2157,8 +2170,8 @@ header {
 }
 
 .profile-badge-pill:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(99, 102, 241, 0.25);
+  background: var(--primary-light);
+  border-color: var(--primary);
   transform: translateY(-1px);
 }
 
@@ -2183,7 +2196,7 @@ header {
 .profile-badge-name {
   font-size: 12px;
   font-weight: 800;
-  color: white;
+  color: var(--text);
   max-width: 100px;
   white-space: nowrap;
   overflow: hidden;
@@ -2458,4 +2471,81 @@ header {
   transform: rotate(30deg) scale(1.05);
   background: var(--primary);
   color: white;
+}
+
+/* Responsive Viewport Optimizations */
+@media (max-width: 992px) {
+  .app-container {
+    padding: 15px 10px;
+  }
+  .stat-card {
+    padding: 20px;
+  }
+  .card {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 20px 25px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .logo-section div {
+    justify-content: center;
+  }
+  
+  .header-nav-tabs {
+    justify-content: center;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    gap: 15px;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .nav-buttons {
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .landing-hero-title {
+    font-size: 42px;
+  }
+  
+  .landing-hero-subtitle {
+    font-size: 15px;
+  }
+
+  .profile-badge-pill {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-nav-tabs {
+    gap: 10px;
+  }
+  
+  .header-nav-tab {
+    font-size: 13px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
 }
