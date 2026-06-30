@@ -39,6 +39,14 @@ function verifyMatchingContent(issueType, subject, description, aiResults) {
       matchesCategory = true;
       break;
     }
+    const keywords = categoryKeywords[cat] || [];
+    for (const keyword of keywords) {
+      if (lowerDetected.includes(keyword)) {
+        matchesCategory = true;
+        break;
+      }
+    }
+    if (matchesCategory) break;
   }
 
   // 2. Check for negation words in the detected issue type (e.g. "no pothole", "no public infrastructure", "no hazard", "none")

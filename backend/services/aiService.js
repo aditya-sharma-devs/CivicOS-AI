@@ -48,7 +48,7 @@ async function analyzeIssueImage(imagePath, mimeType, subject, issueType, descri
       - Description: ${description}
 
       Task:
-      1. Inspect the image to confirm if it contains an infrastructure or community hazard (e.g. potholes, road damage, water leaks, broken streetlights, piled garbage, damaged public assets) and if it reasonably matches the report subject and description.
+      1. Inspect the image to confirm if it contains an infrastructure or community hazard (e.g. potholes, road damage, water leaks, broken streetlights, piled garbage, garbage heaps, waste spillage, illegal dumping, damaged public assets) and if it reasonably matches the report subject and description. Note that community hazards include open garbage dumps, waste spillage, and trash heaps located in any public, residential, or natural area.
       2. If the image contains NO community/infrastructure hazard, is a random upload (like a video call screenshot, animal, selfie, face, food, meme, text document, or blank placeholder), or does not match the report details (e.g. subject says pothole but image shows a meeting screenshot), you MUST set "isValid" to false, and set "detectedIssue" to "None".
       3. If "isValid" is false, provide a clear explanation in "invalidReason" (e.g. "The uploaded image is a screenshot of a video call and does not show any infrastructure issues or community hazards.").
       4. Assess the severity level of the hazard using these strict definitions for potholes and street damage:
@@ -64,7 +64,7 @@ async function analyzeIssueImage(imagePath, mimeType, subject, issueType, descri
       {
         "isValid": true | false,
         "invalidReason": "Detailed reason why the image does not match the report if isValid is false (otherwise empty string)",
-        "detectedIssue": "Short name of the issue detected (e.g., Pothole, Damaged Streetlight)",
+        "detectedIssue": "Short name of the issue detected (e.g., Pothole, Damaged Streetlight, Waste Spillage)",
         "severity": "Low" | "Medium" | "High" | "Critical",
         "confidence": 0.85,
         "analysis": "A concise 1-2 sentence description of the visible hazard and potential safety risk."
