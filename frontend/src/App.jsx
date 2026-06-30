@@ -1972,6 +1972,13 @@ function App() {
           </div>
         </div>
       )}
+      {/* Site Footer */}
+      <footer className="site-footer">
+        <div className="footer-content">
+          <p>© 2026 CivicOS AI. Empowering smart communities through AI-driven public infrastructure tracking.</p>
+          <span className="footer-author">Designed & Developed by Aditya Sharma</span>
+        </div>
+      </footer>
     </div>
   );
 }
