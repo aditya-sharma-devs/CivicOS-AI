@@ -142,6 +142,22 @@ function App() {
   const [isGpsLoading, setIsGpsLoading] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
+  // Page Navigation & Theme Switcher States
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const [activeTab, setActiveTab] = useState('home');
+
+  useEffect(() => {
+    document.body.className = theme === 'light' ? 'light-theme' : '';
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (currentView === 'landing') {
+      setCurrentView('citizen');
+      setActiveTab('home');
+    }
+  }, [currentView]);
+
   // Google OAuth Auth Callback
   const handleGoogleAuthCallback = async (response) => {
     setLoading(true);
@@ -807,113 +823,152 @@ function App() {
       )}
 
       {/* Header Bar */}
-      {!['landing', 'user-login', 'user-signup'].includes(currentView) && (
-        <header>
-          <div className="logo-section">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-              <h1>CivicOS AI</h1>
-              <span className={`api-status-badge ${isApiConnected ? 'connected' : ''}`}>
-                <span className="status-dot"></span>
-                {isApiConnected ? 'DB Connected' : 'DB Disconnected'}
-              </span>
-            </div>
-            <p>Hyperlocal Problem Solver | Verified Community Infrastructure Hub</p>
+      <header>
+        <div className="logo-section" onClick={() => setActiveTab('home')} style={{ cursor: 'pointer' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+            <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>📢</span> CivicOS AI
+            </h1>
+            <span className={`api-status-badge ${isApiConnected ? 'connected' : ''}`}>
+              <span className="status-dot"></span>
+              {isApiConnected ? 'DB Connected' : 'DB Disconnected'}
+            </span>
           </div>
-          <div className="nav-buttons" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {currentView === 'citizen' && (
-              <>
-                <button 
-                  className="btn btn-outline" 
-                  onClick={() => { setShowLeaderboard(prev => !prev); setSelectedCitizen(null); }} 
-                  style={{ 
-                    border: showLeaderboard ? '1px solid var(--primary-hover)' : '', 
-                    color: showLeaderboard ? 'var(--primary-hover)' : '',
-                    background: showLeaderboard ? 'rgba(99, 102, 241, 0.1)' : ''
-                  }}
-                >
-                  🏆 Leaderboard
-                </button>
-                {adminToken ? (
-                  <button className="btn btn-primary" onClick={() => { setCurrentView('admin'); fetchIssues(1); }}>
-                    🛡️ Admin Panel
-                  </button>
-                ) : (
-                  <button className="btn btn-secondary" onClick={() => setCurrentView('login')}>
-                    🔒 Admin Portal
-                  </button>
-                )}
-                {userToken && (
-                  <>
-                    <div className="profile-badge-pill">
-                      <div className="profile-badge-avatar">👤</div>
-                      <div className="profile-badge-info">
-                        <span className="profile-badge-name">{userName}</span>
-                        <span className="profile-badge-role">Citizen</span>
-                      </div>
-                    </div>
-                    <button 
-                      className="btn btn-outline" 
-                      onClick={() => setShowChangePasswordModal(true)}
-                      style={{ padding: '8px 12px' }}
-                    >
-                      🔑 Password
-                    </button>
-                    <button className="btn btn-danger" onClick={handleUserLogout} style={{ padding: '8px 16px' }}>
-                      Log Out
-                    </button>
-                  </>
-                )}
-              </>
-            )}
-            {currentView === 'login' && (
-              <button className="btn btn-secondary" onClick={() => setCurrentView(userToken ? 'citizen' : 'landing')}>
-                Back to Dashboard
-              </button>
-            )}
-            {currentView === 'admin' && (
-              <>
-                <button 
-                  className="btn btn-outline" 
-                  onClick={() => { setShowLeaderboard(prev => !prev); setSelectedCitizen(null); }} 
-                  style={{ 
-                    border: showLeaderboard ? '1px solid var(--primary-hover)' : '', 
-                    color: showLeaderboard ? 'var(--primary-hover)' : '',
-                    background: showLeaderboard ? 'rgba(99, 102, 241, 0.1)' : ''
-                  }}
-                >
-                  🏆 Leaderboard
-                </button>
-                <button 
-                  className={`btn ${currentView === 'admin' ? 'btn-primary' : 'btn-secondary'}`} 
-                  onClick={() => fetchIssues(1)}
-                >
-                  Admin Feed
-                </button>
-                <button className="btn btn-secondary" onClick={() => { setCurrentView('citizen'); fetchIssues(1); }}>
-                  Citizen View
-                </button>
-                <div className="profile-badge-pill">
-                  <div className="profile-badge-avatar">🛡️</div>
-                  <div className="profile-badge-info">
-                    <span className="profile-badge-name">{adminUser}</span>
-                    <span className="profile-badge-role">Admin</span>
-                  </div>
+          <p>Hyperlocal Problem Solver | Verified Community Infrastructure Hub</p>
+        </div>
+
+        {/* Central Navigation Tabs */}
+        <div className="header-nav-tabs">
+          <button 
+            className={`header-nav-tab ${activeTab === 'home' ? 'active' : ''}`}
+            onClick={() => setActiveTab('home')}
+          >
+            Home
+          </button>
+          <button 
+            className={`header-nav-tab ${activeTab === 'problems' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('problems');
+              if (userToken) {
+                setCurrentView('citizen');
+              } else if (adminToken) {
+                setCurrentView('admin');
+              } else {
+                // If not logged in, citizen dashboard works as public view
+                setCurrentView('citizen');
+              }
+            }}
+          >
+            Problems Feed
+          </button>
+          <button 
+            className={`header-nav-tab ${activeTab === 'leaderboard' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('leaderboard');
+              fetchLeaderboard();
+            }}
+          >
+            Leaderboard
+          </button>
+          {adminToken && (
+            <button 
+              className={`header-nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('admin');
+                setCurrentView('admin');
+                fetchIssues(1);
+              }}
+            >
+              🛡️ Admin Feed
+            </button>
+          )}
+        </div>
+
+        {/* Right Side Tools & Profiles */}
+        <div className="nav-buttons" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Ask Gemini Button */}
+          <button 
+            className="btn btn-outline" 
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(99,102,241,0.08)' }}
+            onClick={() => showAlert('info', 'Ask Gemini AI assistant helper coming soon!')}
+          >
+            🤖 Ask Gemini
+          </button>
+
+          {/* Theme Toggler */}
+          <button 
+            className="theme-toggle-btn"
+            onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            type="button"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+
+          {/* User Section */}
+          {userToken ? (
+            <>
+              <div className="profile-badge-pill" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>
+                <div className="profile-badge-avatar">👤</div>
+                <div className="profile-badge-info">
+                  <span className="profile-badge-name">{userName}</span>
+                  <span className="profile-badge-role">Citizen</span>
                 </div>
-                <button 
-                  className="btn btn-outline" 
-                  onClick={() => setShowChangePasswordModal(true)}
-                  style={{ padding: '8px 12px' }}
-                >
-                  🔑 Password
-                </button>
-                <button className="btn btn-danger" onClick={handleAdminLogout}>
-                  Log Out
-                </button>
-              </>
-            )}
-          </div>
-        </header>
-      )}
+              </div>
+              <button 
+                className="btn btn-outline" 
+                onClick={() => setShowChangePasswordModal(true)}
+                style={{ padding: '8px 12px' }}
+              >
+                🔑 Password
+              </button>
+              <button className="btn btn-danger" onClick={handleUserLogout} style={{ padding: '8px 16px' }}>
+                Log Out
+              </button>
+            </>
+          ) : adminToken ? (
+            <>
+              <div className="profile-badge-pill" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>
+                <div className="profile-badge-avatar">🛡️</div>
+                <div className="profile-badge-info">
+                  <span className="profile-badge-name">{adminUser}</span>
+                  <span className="profile-badge-role">Admin</span>
+                </div>
+              </div>
+              <button 
+                className="btn btn-outline" 
+                onClick={() => setShowChangePasswordModal(true)}
+                style={{ padding: '8px 12px' }}
+              >
+                🔑 Password
+              </button>
+              <button className="btn btn-danger" onClick={handleAdminLogout}>
+                Log Out
+              </button>
+            </>
+          ) : (
+            <>
+              <button 
+                className="btn btn-secondary"
+                onClick={() => {
+                  setCurrentView('login');
+                }}
+              >
+                🛡️ Admin Sign In
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={() => {
+                  setCurrentView('user-login');
+                  setForgotPasswordStep(0);
+                }}
+              >
+                Sign In
+              </button>
+            </>
+          )}
+        </div>
+      </header>
 
       {/* Analytics Panel */}
       {!['landing', 'user-login', 'user-signup', 'login'].includes(currentView) && (
@@ -941,44 +996,52 @@ function App() {
         </div>
       )}
 
-      {/* Main Body Switcher */}
-      {currentView === 'landing' && (
-        <div className="landing-container">
-          <div className="landing-header">
-            <h1>CivicOS AI</h1>
-            <p>Hyperlocal Community Problem Solver & Real-time Verified Infrastructure Hazard Hub</p>
-          </div>
-          
-          <div className="portal-grid">
-            {/* Citizen Portal */}
-            <div className="portal-card">
-              <div>
-                <span className="portal-icon">📢</span>
-                <h3>Citizen Reporting Portal</h3>
-                <p>Report potholes, broken streetlights, water leaks, and waste issues. Leverage Gemini AI to verify hazard details instantly.</p>
-              </div>
-              <div className="portal-actions">
-                <button className="btn btn-primary" onClick={() => setCurrentView('user-login')}>
-                  Citizen Sign In
-                </button>
-                <button className="btn btn-outline" onClick={() => setCurrentView('user-signup')}>
-                  Create Citizen Account
-                </button>
-              </div>
-            </div>
+      {/* Unique Premium Landing Page */}
+      {activeTab === 'home' && !['user-login', 'user-signup', 'login'].includes(currentView) && (
+        <div className="landing-hero-container">
+          <div className="landing-badge">🌿 Empowering Smart Communities</div>
+          <h1 className="landing-hero-title">
+            Empower. Report. <span>Resolve.</span>
+          </h1>
+          <p className="landing-hero-subtitle">
+            CivicOS AI is a community-led coordination platform. Report local infrastructure issues, verify resolved hazards with AI-extracted summaries, and build neighborhood trust.
+          </p>
+          <button 
+            className="landing-cta-button"
+            onClick={() => {
+              setActiveTab('problems');
+              if (userToken) {
+                setCurrentView('citizen');
+              } else if (adminToken) {
+                setCurrentView('admin');
+              } else {
+                setCurrentView('citizen');
+              }
+            }}
+          >
+            Explore Community Problems →
+          </button>
 
-            {/* Authority Portal */}
-            <div className="portal-card">
-              <div>
-                <span className="portal-icon">🛡️</span>
-                <h3>Authority Dashboard</h3>
-                <p>Verify citizen submissions, manage infrastructure fixes, update resolved hazards, and track community analytics.</p>
-              </div>
-              <div className="portal-actions" style={{ marginTop: 'auto' }}>
-                <button className="btn btn-primary" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)' }} onClick={() => setCurrentView('login')}>
-                  Authority Sign In
-                </button>
-              </div>
+          <div className="landing-features-grid">
+            <div className="feature-card">
+              <div className="feature-card-icon">📢</div>
+              <h3>Report Infrastructure</h3>
+              <p>Instantly upload pothole or street light issues with geolocation markers and photos.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-card-icon">⚡ AI Details Extraction</div>
+              <h3>Gemini AI Verification</h3>
+              <p>Submit simple descriptions and let our Gemini API parse categories, districts, and coordinates automatically.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-card-icon">🏆 Citizen Standings</div>
+              <h3>Leaderboard Points</h3>
+              <p>Earn leaderboard points for reporting hazards and helping verify infrastructure resolution.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-card-icon">🛡️ Verified Resolution</div>
+              <h3>Transparency</h3>
+              <p>Authority dashboards review community fixes, keeping public status records completely transparent.</p>
             </div>
           </div>
         </div>
@@ -1245,16 +1308,15 @@ function App() {
         </div>
       )}
 
-      {['citizen', 'admin'].includes(currentView) && (
+      {activeTab === 'problems' && !['user-login', 'user-signup', 'login'].includes(currentView) && (
         <>
           <div className="main-grid">
-            {/* Left column - Submission form or Leaderboard */}
-          {(currentView === 'citizen' || showLeaderboard) && (
+            {/* Left column - Submission form */}
+          {currentView !== 'admin' && (
             <div className="left-column-container" style={{ position: 'relative' }}>
-              {currentView === 'citizen' && (
-                <div className="card reporting-form-card" style={{ visibility: showLeaderboard ? 'hidden' : 'visible' }}>
-                  <h2>Report Infrastructure Issue</h2>
-                  <form onSubmit={handleReportSubmit}>
+              <div className="card reporting-form-card">
+                <h2>Report Infrastructure Issue</h2>
+                <form onSubmit={handleReportSubmit}>
                     <div className="form-group">
                       <label>Subject / Brief Summary</label>
                       <input 
@@ -1391,102 +1453,8 @@ function App() {
                     </button>
                   </form>
                 </div>
-              )}
-
-              {showLeaderboard && (
-                <div className="leaderboard-overlay-card" style={{ minHeight: currentView === 'admin' ? '500px' : 'auto' }}>
-                  <div className="leaderboard-header">
-                    <h3>🏆 Citizen Leaderboard</h3>
-                    <button className="leaderboard-close-btn" onClick={() => { setShowLeaderboard(false); setSelectedCitizen(null); }}>
-                      Close &times;
-                    </button>
-                  </div>
-                  
-                  {selectedCitizen ? (
-                    <div className="citizen-details-container">
-                      <button className="back-to-leaderboard-btn" onClick={() => setSelectedCitizen(null)}>
-                        ← Back to Leaderboard
-                      </button>
-                      
-                      <div className="citizen-details-profile">
-                        <img 
-                          src={selectedCitizen.avatar || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
-                          alt={selectedCitizen.name}
-                          className="citizen-details-avatar"
-                        />
-                        <div className="citizen-details-name">{selectedCitizen.name}</div>
-                        <div className="citizen-details-email">{selectedCitizen.email}</div>
-                        
-                        <div className="citizen-points-bubble">
-                          🏆 <span>{selectedCitizen.totalPoints || 0} Points</span>
-                        </div>
-                      </div>
-                      
-                      <div className="citizen-stats-section">
-                        <div className="citizen-stats-title">Severity breakdown</div>
-                        <div className="citizen-breakdown-list">
-                          <div className="citizen-breakdown-row">
-                            <span className="severity-label">🚨 Critical (50 pts)</span>
-                            <span className="severity-count critical">{selectedCitizen.criticalCount || 0}</span>
-                          </div>
-                          <div className="citizen-breakdown-row">
-                            <span className="severity-label">🟠 High (40 pts)</span>
-                            <span className="severity-count high">{selectedCitizen.highCount || 0}</span>
-                          </div>
-                          <div className="citizen-breakdown-row">
-                            <span className="severity-label">🟡 Medium (30 pts)</span>
-                            <span className="severity-count medium">{selectedCitizen.mediumCount || 0}</span>
-                          </div>
-                          <div className="citizen-breakdown-row">
-                            <span className="severity-label">🟢 Low (20 pts)</span>
-                            <span className="severity-count low">{selectedCitizen.lowCount || 0}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="leaderboard-list">
-                      {leaderboardData.length === 0 ? (
-                        <div className="leaderboard-empty">
-                          No ranked citizens match the active filters.
-                        </div>
-                      ) : (
-                        leaderboardData.map((entry, index) => {
-                          const rank = index + 1;
-                          return (
-                            <div 
-                              key={entry._id} 
-                              className={`leaderboard-item rank-${rank <= 3 ? rank : 'other'}`}
-                              onClick={() => setSelectedCitizen(entry)}
-                            >
-                              <div className="leaderboard-user-info">
-                                <div className="leaderboard-rank-badge">
-                                  {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
-                                </div>
-                                <img 
-                                  src={entry.avatar || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
-                                  alt={entry.name}
-                                  className="leaderboard-avatar"
-                                />
-                                <div className="leaderboard-details">
-                                  <span className="leaderboard-username">{entry.name}</span>
-                                  <span className="leaderboard-useremail">{entry.email}</span>
-                                </div>
-                              </div>
-                              
-                              <div className="leaderboard-count-badge">
-                                <span>{entry.totalPoints || 0} pts</span> ({entry.uniqueReportsCount} unique)
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
 
           {/* Right column: Issues Section */}
           <div className="issues-feed-section" style={{ gridColumn: (currentView === 'admin' && !showLeaderboard) ? '1 / -1' : 'auto' }}>
@@ -1789,6 +1757,110 @@ function App() {
           </div>
         )}
       </>
+    )}
+
+    {/* Leaderboard Page Tab */}
+    {activeTab === 'leaderboard' && !['user-login', 'user-signup', 'login'].includes(currentView) && (
+      <div className="card" style={{ maxWidth: '900px', margin: '0 auto', padding: '30px' }}>
+        <h2 style={{ marginBottom: '20px' }}>🏆 Citizen Leaderboard</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '25px', lineHeight: '1.5' }}>
+          Standings of our community heroes based on resolved neighborhood issues. Keep reporting to climb up!
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: selectedCitizen ? '1.2fr 1fr' : '1fr', gap: '30px' }}>
+          {/* Rankings List */}
+          <div className="leaderboard-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {leaderboardData.length === 0 ? (
+              <div className="leaderboard-empty">
+                No ranked citizens found.
+              </div>
+            ) : (
+              leaderboardData.map((entry, index) => {
+                const rank = index + 1;
+                return (
+                  <div 
+                    key={entry._id} 
+                    className={`leaderboard-item rank-${rank <= 3 ? rank : 'other'}`}
+                    onClick={() => setSelectedCitizen(entry)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 18px',
+                      background: 'var(--bg-input)',
+                      border: '1px solid var(--glass-border)',
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div className="leaderboard-user-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div className="leaderboard-rank-badge" style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                        {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
+                      </div>
+                      {/* Static User Icon Placeholder instead of dynamic image */}
+                      <div className="leaderboard-avatar-placeholder">👤</div>
+                      <div className="leaderboard-details" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className="leaderboard-username" style={{ fontWeight: '700', color: 'var(--text)' }}>{entry.name}</span>
+                        <span className="leaderboard-useremail" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{entry.email}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="leaderboard-count-badge" style={{ fontSize: '13px', color: 'var(--primary)' }}>
+                      <strong>{entry.totalPoints || 0} pts</strong> ({entry.uniqueReportsCount} reports)
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Profile Detail Card */}
+          {selectedCitizen && (
+            <div className="citizen-details-container" style={{ background: 'var(--bg-card)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'relative' }}>
+              <button 
+                className="leaderboard-close-btn" 
+                onClick={() => setSelectedCitizen(null)}
+                style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}
+              >
+                &times;
+              </button>
+              
+              <div className="citizen-details-profile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
+                <div className="citizen-details-avatar-placeholder">👤</div>
+                <div className="citizen-details-name" style={{ fontSize: '18px', fontWeight: '800', margin: '10px 0 4px 0', color: 'var(--text)' }}>{selectedCitizen.name}</div>
+                <div className="citizen-details-email" style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{selectedCitizen.email}</div>
+                
+                <div className="citizen-points-bubble" style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '6px 14px', borderRadius: '99px', fontSize: '14px', fontWeight: '700' }}>
+                  🏆 <span>{selectedCitizen.totalPoints || 0} Points</span>
+                </div>
+              </div>
+              
+              <div className="citizen-stats-section" style={{ width: '100%' }}>
+                <div className="citizen-stats-title" style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.5px' }}>Severity breakdown</div>
+                <div className="citizen-breakdown-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                    <span className="severity-label">🚨 Critical (50 pts)</span>
+                    <span className="severity-count critical" style={{ fontWeight: '700', color: 'var(--severity-critical)' }}>{selectedCitizen.criticalCount || 0}</span>
+                  </div>
+                  <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                    <span className="severity-label">🟠 High (40 pts)</span>
+                    <span className="severity-count high" style={{ fontWeight: '700', color: 'var(--severity-high)' }}>{selectedCitizen.highCount || 0}</span>
+                  </div>
+                  <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                    <span className="severity-label">🟡 Medium (30 pts)</span>
+                    <span className="severity-count medium" style={{ fontWeight: '700', color: 'var(--severity-medium)' }}>{selectedCitizen.mediumCount || 0}</span>
+                  </div>
+                  <div className="citizen-breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                    <span className="severity-label">🟢 Low (20 pts)</span>
+                    <span className="severity-count low" style={{ fontWeight: '700', color: 'var(--severity-low)' }}>{selectedCitizen.lowCount || 0}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     )}
 
     {showChangePasswordModal && (
